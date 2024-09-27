@@ -155,45 +155,68 @@ BufferPointer readerCreate(integer size, integer increment, character mode) {
 BufferPointer readerAddChar(BufferPointer readerPointer, character ch) {
 	string tempReader = UNDEFINED;
 	integer newSize = 0;
-	character tempChar = ' ';
 
 	if (!readerPointer) {
 		return UNDEFINED;
 	}
 
-	/* TO_DO: Reset Realocation */
+	readerPointer->flags.isMoved = FALSE;
 
-	/* TO_DO: Test the inclusion of chars */
+	if (ch < 0 || ch >= NCHAR) {
+		return UNDEFINED;  
+	}
+
 	if (readerPointer->positions.wrte * (integer)sizeof(character) < readerPointer->size) {
-		/* TO_DO: This buffer is NOT full */
 		readerPointer->flags.isFull = FALSE;
 	}
 	else {
-		/* TO_DO: Reset Full flag */
 		readerPointer->flags.isFull = TRUE;
 
 		switch (readerPointer->mode) {
 		case MODE_FIXED:
-			/* TO_DO: Update the last position with Terminator *;
+			return UNDEFINED;
 			break;
 		case MODE_ADDIT:
-			/* TO_DO: Update size for Additive mode */
-			/* TO_DO: Defensive programming */
+			newSize = readerPointer->size + readerPointer->increment;
+
+			if (newSize < 0 || newSize >= READER_MAX_SIZE) {
+				return UNDEFINED;
+			}
+
 			break;
 		case MODE_MULTI:
-			/* TO_DO: Update size for Additive mode */
-			/* TO_DO: Defensive programming */
+			newSize = readerPointer->size * readerPointer->increment;
+			
+			if (newSize < 0 || newSize >= READER_MAX_SIZE) {
+				return UNDEFINED;
+			}
+
 			break;
 		default:
 			return UNDEFINED;
 		}
-		/* TO_DO: Reallocate */
-		/* TO_DO: Defensive programming */
-		return readerPointer;
+
+		tempReader = (string)realloc(readerPointer->content, newSize * sizeof(character));
+		
+		if (!tempReader) {
+			return UNDEFINED;
+		}
+	
+		if (readerPointer->content != tempReader) {
+			readerPointer->flags.isMoved = TRUE;
+		}
+
+		readerPointer->content = tempReader;
+		readerPointer->size = newSize;
 	}
-	/* TO_DO: Update the flags */
+	
 	readerPointer->content[readerPointer->positions.wrte++] = ch;
-	/* TO_DO: Updates histogram */
+	readerPointer->content[readerPointer->positions.wrte] = '\0';
+	
+	if (ch >= 0 && ch < NCHAR) { // Check if ch is a valid index for the histogram
+		readerPointer->histogram[ch]++;
+	}
+
 	return readerPointer;
 }
 
@@ -661,11 +684,9 @@ void readerCalcChecksum(BufferPointer readerPointer) {
 */
 
 boolean readerPrintFlags(BufferPointer readerPointer) {
-	/* TO_DO: Defensive programming */
 	if (!readerPointer) {
 		return FALSE;
 	}
-	/* TO_DO: Shows flags */
 	printf("isEmpty: %d\n", readerPointer->flags.isEmpty);
 	printf("isFull: %d\n", readerPointer->flags.isFull);
 	printf("isRead: %d\n", readerPointer->flags.isRead);
