@@ -52,6 +52,8 @@
  */
 
 #include <ctype.h>
+#include <stdbool.h>
+#include <stddef.h>
 
 #ifndef COMPILERS_H_
 #include "Compilers.h"
@@ -236,10 +238,24 @@ BufferPointer readerAddChar(BufferPointer readerPointer, character ch) {
 */
 boolean readerClear(BufferPointer const readerPointer) {
 	/* TO_DO: Defensive programming */
-	
+	if (readerPointer == UNDEFINED) {
+		return false;
+	}
 	/* TO_DO: Adjust the write, mark and read to zero */
+	readerPointer->positions.read = 0;
+	readerPointer->positions.wrte = 0;
+	readerPointer->positions.mark = 0;
 	/* TO_DO: Adjust flags */
-	return TRUE;
+	readerPointer->flags.isRead = false;
+	readerPointer->flags.isFull = false;
+	readerPointer->flags.isEmpty = true;
+	readerPointer->flags.isEnd = false;
+
+	for (size_t i = 0; i < NCHAR; i++) {
+		readerPointer->histogram[i] = 0;
+	}
+
+	return true;
 }
 
 /*
@@ -258,8 +274,16 @@ boolean readerClear(BufferPointer const readerPointer) {
 */
 boolean readerFree(BufferPointer const readerPointer) {
 	/* TO_DO: Defensive programming */
+	if (readerPointer == UNDEFINED {
+		return false;
+	}
 	/* TO_DO: Free pointers */
-	return TRUE;
+	if (readerPointer->content != UNDEFINED) {
+		free(readerPointer->content);
+		readerPointer->content = UNDEFINED
+	}
+	free((void*)readerPointer);
+	return true;
 }
 
 /*
@@ -278,8 +302,11 @@ boolean readerFree(BufferPointer const readerPointer) {
 */
 boolean readerIsFull(BufferPointer const readerPointer) {
 	/* TO_DO: Defensive programming */
+	if (readerPointer == UNDEFINED) {
+		return false;
+	}
 	/* TO_DO: Check flag if buffer is FUL */
-	return 0;
+	return readerPointer->flags.isFull;
 }
 
 
@@ -299,8 +326,11 @@ boolean readerIsFull(BufferPointer const readerPointer) {
 */
 boolean readerIsEmpty(BufferPointer const readerPointer) {
 	/* TO_DO: Defensive programming */
+	if (readerPointer == UNDEFINED) {
+		return false;
+	}
 	/* TO_DO: Check flag if buffer is EMP */
-	return 0;
+	return readerPointer->flags.isEmpty;
 }
 
 /*
@@ -320,8 +350,15 @@ boolean readerIsEmpty(BufferPointer const readerPointer) {
 */
 boolean readerSetMark(BufferPointer const readerPointer, integer mark) {
 	/* TO_DO: Defensive programming */
+	if (readerPointer == UNDEFINED) {
+		return false; 
+	}
+	if (mark < 0 || mark > readerPointer->positions.wrte) {
+		return false;
+	}
 	/* TO_DO: Adjust mark */
-	return TRUE;
+	readerPointer->positions.mark = mark;
+	return true;
 }
 
 
@@ -462,6 +499,13 @@ boolean readerRestore(BufferPointer const readerPointer) {
 */
 character readerGetChar(BufferPointer const readerPointer) {
 	/* TO_DO: Defensive programming */
+	if (readerPointer == UNDEFINED) {
+		return '\0';
+	}
+	if (readerPointer->positions.read == readerPointer->positions.wrte) {
+		readerPointer->flags.isRead = true;
+		return '\0';
+	}
 	/* TO_DO: Check condition to read/wrte */
 	return readerPointer->content[readerPointer->positions.read++];
 }
@@ -484,6 +528,13 @@ character readerGetChar(BufferPointer const readerPointer) {
 */
 string readerGetContent(BufferPointer const readerPointer, integer pos) {
 	/* TO_DO: Defensive programming */
+	if (readerPointer == UNDEFINED) {
+		return UNDEFINED;
+	}
+	if (pos < 0 || pos > readerPointer->positions.wrte) {
+		return UNDEFINED;
+	}
+
 	return readerPointer->content + pos;
 }
 
@@ -505,8 +556,11 @@ string readerGetContent(BufferPointer const readerPointer, integer pos) {
 */
 integer readerGetPosRead(BufferPointer const readerPointer) {
 	/* TO_DO: Defensive programming */
+	if (readerPointer == UNDEFINED) {
+		return -1;
+	}
 	/* TO_DO: Return read */
-	return 0;
+	return readerPointer->positions.read;
 }
 
 
@@ -526,8 +580,11 @@ integer readerGetPosRead(BufferPointer const readerPointer) {
 */
 integer readerGetPosWrte(BufferPointer const readerPointer) {
 	/* TO_DO: Defensive programming */
+	if (readerPointer == UNDEFINED) {
+		return -1;
+	}
 	/* TO_DO: Return wrte */
-	return 0;
+	return readerPointer->positions.wrte;
 }
 
 
@@ -547,8 +604,16 @@ integer readerGetPosWrte(BufferPointer const readerPointer) {
 */
 integer readerGetPosMark(BufferPointer const readerPointer) {
 	/* TO_DO: Defensive programming */
+	if (readerPointer == UNDEFINED) {
+		return false;
+	}
+
+	if (readerPointer->positions.mark < 0 || readerPointer->positions.mark > readerPointer->positions.wrte) {
+		return false;
+	}
+	readerPointer->positions.mark = readerPointer->positions.wrte;
 	/* TO_DO: Return mark */
-	return 0;
+	return TRUE;
 }
 
 
@@ -568,8 +633,11 @@ integer readerGetPosMark(BufferPointer const readerPointer) {
 */
 integer readerGetSize(BufferPointer const readerPointer) {
 	/* TO_DO: Defensive programming */
+	if (readerPointer == UNDEFINED) {
+		return -1;
+	}
 	/* TO_DO: Return size */
-	return 0;
+	return readerPointer->size;
 }
 
 /*
@@ -588,8 +656,11 @@ integer readerGetSize(BufferPointer const readerPointer) {
 */
 integer readerGetInc(BufferPointer const readerPointer) {
 	/* TO_DO: Defensive programming */
+	if (readerPointer == UNDEFINED) {
+		return -1;
+	}
 	/* TO_DO: Return increment */
-	return 0;
+	return readerPointer->increment;
 }
 
 /*
@@ -608,6 +679,9 @@ integer readerGetInc(BufferPointer const readerPointer) {
 */
 character readerGetMode(BufferPointer const readerPointer) {
 	/* TO_DO: Defensive programming */
+	if (readerPointer == UNDEFINED) {
+		return -1;
+	}
 	/* TO_DO: Return mode */
 	return '\0';
 }
@@ -626,7 +700,15 @@ character readerGetMode(BufferPointer const readerPointer) {
 */
 void readerPrintStat(BufferPointer const readerPointer) {
 	/* TO_DO: Defensive programming */
+	if (readerPointer == UNDEFINED) {
+		printf("Error: Invalid BufferPointer.\n");
+		return;
+	}
 	/* TO_DO: Updates the histogram */
+	printf("Character Histogram:\n");
+	for (int i = 0; i < NCHAR; i++) {
+		printf("Character %c: %d\n", (char)i, readerPointer->histogram[i]);
+	}
 }
 
 /*
@@ -644,8 +726,18 @@ void readerPrintStat(BufferPointer const readerPointer) {
 */
 integer readerGetNumErrors(BufferPointer const readerPointer) {
 	/* TO_DO: Defensive programming */
+	if (readerPointer == UNDEFINED) {
+		printf("Error: Invalid BufferPointer.\n");
+		return -1;
+	}
+	integer errorCount = 0;
+	for (int i = 0; i < readerPointer->positions.wrte; i++) {
+		if (readerPointer->content[i] < 0 || readerPointer->content[i] >= NCHAR) {
+			errorCount++;
+		}
+	}
 	/* TO_DO: Returns the number of errors */
-	return 0;
+	return errorCount;
 }
 
 /*
@@ -665,7 +757,18 @@ integer readerGetNumErrors(BufferPointer const readerPointer) {
 
 void readerCalcChecksum(BufferPointer readerPointer) {
 	/* TO_DO: Defensive programming */
+	if (readerPointer == UNDEFINED) {
+		printf("Error: Invalid BufferPointer.\n");
+		return;
+	}
 	/* TO_DO: Calculate checksum */
+	unsigned char checksum = 0;
+	for (size_t i = 0; i < readerPointer->positions.wrte; i++) {
+		checksum += readerPointer->content[i];
+	}
+	checksum &= 0xFF;
+
+	readerPointer->checksum = checksum;
 }
 
 /*
