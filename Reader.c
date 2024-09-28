@@ -158,13 +158,11 @@ BufferPointer readerAddChar(BufferPointer readerPointer, character ch) {
 		return UNDEFINED;
 	}
 
-	// Check for valid character range
 	if (ch < 0 || ch >= NCHAR) {
 		fprintf(stderr, "Error: Invalid character value: %d.\n", ch);
 		return UNDEFINED;
 	}
 
-	// Check if buffer is full
 	if (readerPointer->positions.wrte >= readerPointer->size) {
 		readerPointer->flags.isFull = TRUE;
 		switch (readerPointer->mode) {
@@ -185,7 +183,7 @@ BufferPointer readerAddChar(BufferPointer readerPointer, character ch) {
 		tempReader = (string)realloc(readerPointer->content, newSize * sizeof(character));
 		if (!tempReader) {
 			fprintf(stderr, "Error: Memory reallocation failed.\n");
-			return NULL; // or UNDEFINED
+			return UNDEFINED;
 		}
 		readerPointer->content = tempReader;
 		readerPointer->size = newSize;
