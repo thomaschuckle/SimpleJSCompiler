@@ -9,7 +9,7 @@
       "name": "SimpleJS.exe",
       "args": [
         "1",
-        "README.txt"
+        "INPUT6_Big.sof",
       ]
     }
   ]

@@ -120,12 +120,7 @@ BufferPointer readerCreate(integer size, integer increment, character mode) {
 	readerPointer->size = size;
 	readerPointer->increment = increment;
 
-	readerPointer->flags = (Flag){
-		.isEmpty = TRUE,
-		.isFull = FALSE,
-		.isRead = FALSE,
-		.isMoved = FALSE
-	};
+	readerPointer->flags = readerPointer->flags | READER_SET_FLAG_EMP;
 
 	readerPointer->checksum = 0;
 
@@ -164,7 +159,7 @@ BufferPointer readerAddChar(BufferPointer readerPointer, character ch) {
 	}
 
 	if (readerPointer->positions.wrte >= readerPointer->size) {
-		readerPointer->flags.isFull = TRUE;
+		readerPointer->flags = readerPointer->flags | READER_SET_FLAG_FUL;
 		switch (readerPointer->mode) {
 		case MODE_FIXED:
 			fprintf(stderr, "Error: Buffer is full and mode is fixed.\n");
@@ -174,6 +169,9 @@ BufferPointer readerAddChar(BufferPointer readerPointer, character ch) {
 			break;
 		case MODE_MULTI:
 			newSize = readerPointer->size * readerPointer->increment;
+			break;
+		case MODE_TOTAL:
+			newSize = READER_MAX_SIZE;
 			break;
 		default:
 			fprintf(stderr, "Error: Invalid mode.\n");
@@ -187,7 +185,7 @@ BufferPointer readerAddChar(BufferPointer readerPointer, character ch) {
 		}
 		readerPointer->content = tempReader;
 		readerPointer->size = newSize;
-		readerPointer->flags.isMoved = TRUE;
+		readerPointer->flags = readerPointer->flags | READER_SET_FLAG_MOV;
 	}
 
 	readerPointer->content[readerPointer->positions.wrte++] = ch;
@@ -219,10 +217,7 @@ boolean readerClear(BufferPointer const readerPointer) {
 	readerPointer->positions.wrte = 0;
 	readerPointer->positions.mark = 0;
 
-	readerPointer->flags.isRead = FALSE;
-	readerPointer->flags.isFull = FALSE;
-	readerPointer->flags.isEmpty = TRUE;
-	readerPointer->flags.isMoved = FALSE;
+	readerPointer->flags = 0x00;
 
 	integer i;
 	for (i = 0; i < NCHAR; i++) {
@@ -278,7 +273,7 @@ boolean readerIsFull(BufferPointer const readerPointer) {
 		return FALSE;
 	}
 
-	return readerPointer->flags.isFull;
+	return (readerPointer->flags & READER_SET_FLAG_FUL) == READER_SET_FLAG_FUL;
 }
 
 
@@ -301,7 +296,7 @@ boolean readerIsEmpty(BufferPointer const readerPointer) {
 		return FALSE;
 	}
 
-	return readerPointer->flags.isEmpty;
+	return (readerPointer->flags & READER_SET_FLAG_EMP) == READER_SET_FLAG_EMP;
 }
 
 /*
@@ -418,7 +413,7 @@ boolean readerRecover(BufferPointer const readerPointer) {
 
 	readerPointer->positions.read = 0;
 	readerPointer->positions.mark = 0;
-	readerPointer->flags.isRead = FALSE;
+	readerPointer->flags = readerPointer->flags & ~READER_SET_FLAG_REA;
 
 	return TRUE;
 }
@@ -500,7 +495,7 @@ character readerGetChar(BufferPointer const readerPointer) {
 	}
 	if (readerPointer->positions.read < 0 ||
 		readerPointer->positions.read >= readerPointer->positions.wrte) {
-		readerPointer->flags.isRead = TRUE;
+		readerPointer->flags = readerPointer->flags | READER_SET_FLAG_REA;
 		return '\0';
 	}
 	return readerPointer->content[readerPointer->positions.read++];
@@ -774,10 +769,7 @@ boolean readerPrintFlags(BufferPointer readerPointer) {
 	if (!readerPointer) {
 		return FALSE;
 	}
-	printf("isEmpty: %d\n", readerPointer->flags.isEmpty);
-	printf("isFull: %d\n", readerPointer->flags.isFull);
-	printf("isRead: %d\n", readerPointer->flags.isRead);
-	printf("isMoved: %d\n", readerPointer->flags.isMoved);
+	printf("Flags: %u\n", readerPointer->flags);
 
 	return TRUE;
 }
