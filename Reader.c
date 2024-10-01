@@ -65,7 +65,7 @@
  ***********************************************************
  * Function name: readerCreate
  * Purpose: Creates the buffer reader according to capacity, increment
-	 factor and operational mode ('f', 'a', 'm')
+	 factor and operational mode ('f', 'a', 'm', 't')
  * Author: Svillen Ranev / Paulo Sousa
  * History/Versions: S22
  * Called functions: calloc(), malloc()
@@ -84,44 +84,50 @@
  */
 
 BufferPointer readerCreate(integer size, integer increment, character mode) {
-	BufferPointer readerPointer;
+	/* Validate and set default values for size and increment */
 
 	if (size <= 0) {
 		size = READER_DEFAULT_SIZE;
 	}
+
 	if (increment <= 0) {
 		increment = READER_DEFAULT_INCREMENT;
 	}
-	if (mode != 'f' && mode != 'm' && mode != 'a') {
+
+	if (mode == 't') {
+		increment = 0;
+	}
+
+	if (mode != 'f' && mode != 'm' && mode != 'a' && mode != 't') {
 		mode = MODE_FIXED;
 	}
 
-	readerPointer = (BufferPointer)calloc(1, sizeof(Buffer));
+	/* Allocate memory for the reader */
+	BufferPointer readerPointer = (BufferPointer)calloc(1, sizeof(Buffer));
 
 	if (!readerPointer) {
 		return UNDEFINED;
 	}
 
+	/* Allocate memory for the content */
 	readerPointer->content = (string)malloc(size * sizeof(character));
-
 	if (!readerPointer->content) {
 		free(readerPointer);
 		return UNDEFINED;
 	}
 
-	integer i;
-	for (i = 0; i < NCHAR; i++) {
+	/* Ini histogram*/
+	for (integer i = 0; i < NCHAR; i++) {
 		readerPointer->histogram[i] = 0;
 	}
 
+	/* Ini other fields */
 	readerPointer->numReaderErrors = 0;
-
 	readerPointer->mode = mode;
 	readerPointer->size = size;
 	readerPointer->increment = increment;
-
+	readerPointer->positions.wrte = 0;
 	readerPointer->flags = readerPointer->flags | READER_SET_FLAG_EMP;
-
 	readerPointer->checksum = 0;
 
 	return readerPointer;
@@ -145,7 +151,7 @@ BufferPointer readerCreate(integer size, integer increment, character mode) {
 */
 
 BufferPointer readerAddChar(BufferPointer readerPointer, character ch) {
-	string tempReader = NULL;
+	string tempReader = UNDEFINED;
 	integer newSize = 0;
 
 	if (!readerPointer) {
@@ -153,13 +159,9 @@ BufferPointer readerAddChar(BufferPointer readerPointer, character ch) {
 		return UNDEFINED;
 	}
 
-	if (ch < 0 || ch >= NCHAR) {
-		fprintf(stderr, "Error: Invalid character value: %d.\n", ch);
-		return UNDEFINED;
-	}
-
 	if (readerPointer->positions.wrte >= readerPointer->size) {
 		readerPointer->flags = readerPointer->flags | READER_SET_FLAG_FUL;
+		readerPointer->flags = readerPointer->flags & ~READER_SET_FLAG_EMP;
 		switch (readerPointer->mode) {
 		case MODE_FIXED:
 			fprintf(stderr, "Error: Buffer is full and mode is fixed.\n");
@@ -178,6 +180,11 @@ BufferPointer readerAddChar(BufferPointer readerPointer, character ch) {
 			return UNDEFINED;
 		}
 
+		if (newSize > READER_MAX_SIZE) {
+			fprintf(stderr, "Error: Buffer size exceeds maximum allowed size.\n");
+			return UNDEFINED;
+		}
+
 		tempReader = (string)realloc(readerPointer->content, newSize * sizeof(character));
 		if (!tempReader) {
 			fprintf(stderr, "Error: Memory reallocation failed.\n");
@@ -186,10 +193,12 @@ BufferPointer readerAddChar(BufferPointer readerPointer, character ch) {
 		readerPointer->content = tempReader;
 		readerPointer->size = newSize;
 		readerPointer->flags = readerPointer->flags | READER_SET_FLAG_MOV;
+		readerPointer->flags = readerPointer->flags & ~READER_SET_FLAG_FUL;
+
 	}
 
 	readerPointer->content[readerPointer->positions.wrte++] = ch;
-	readerPointer->histogram[ch]++;
+	readerPointer->histogram[(unsigned char)ch]++;
 
 	return readerPointer;
 }
@@ -341,17 +350,17 @@ boolean readerSetMark(BufferPointer const readerPointer, integer mark) {
 *************************************************************
 */
 integer readerPrint(BufferPointer const readerPointer) {
-	integer cont = 0;
+	integer count = 0;
 	
 	if (readerPointer == UNDEFINED) {
 		return -1;
 	}
 
-	for (cont = 0; cont < readerPointer->positions.wrte; cont++) {
-		printf("%c", readerPointer->content[cont]);
+	for (count = 0; count < readerPointer->positions.wrte; count++) {
+		printf("%c", readerPointer->content[count]);
 	}
 
-	return cont;
+	return count;
 }
 
 /*
@@ -371,25 +380,29 @@ integer readerPrint(BufferPointer const readerPointer) {
 *************************************************************
 */
 integer readerLoad(BufferPointer readerPointer, FILE* const fileDescriptor) {
-	
-	integer size = 0;
+	integer count = 0;
 	character c;
 
-	if (readerPointer == UNDEFINED || fileDescriptor == NULL) {
+	if (readerPointer == UNDEFINED || fileDescriptor == UNDEFINED) {
 		return -1;
 	}
 
 	while (!feof(fileDescriptor)) {
 		c = (character)fgetc(fileDescriptor);
 
-		if (readerPointer->positions.wrte >= readerPointer->size) {
-			break;
-		}
 		readerPointer = readerAddChar(readerPointer, c);
-		size++;
+
+		if (readerPointer == UNDEFINED) {
+			// Handle error if reallocation or addition fails
+			fprintf(stderr, "Error: Failed to add character.\n");
+			return -1;
+		}
+
+		count++;
 	}
 
-	return size;
+	readerPointer->flags = readerPointer->flags | READER_SET_FLAG_REA;
+	return count;
 }
 
 /*

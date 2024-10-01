@@ -121,10 +121,14 @@ integer mainReader(integer argc, string* argv) {
 	if (argc == 4) {
 		mode = *argv[3];
 		switch (mode) {
-		case MODE_FIXED: case MODE_ADDIT: case MODE_MULTI: break;
+		case MODE_FIXED: 
+		case MODE_ADDIT: 
+		case MODE_MULTI: 
+		case MODE_TOTAL:
+			break;
 		default:
 			bErrorPrint("%s%s%c%s%c%s%c%s", program, ": Wrong mode - choose: ",
-				MODE_FIXED, ", ", MODE_ADDIT, ", ", MODE_MULTI, ".");
+				MODE_FIXED, ", ", MODE_ADDIT, ", ", MODE_MULTI, ",", MODE_TOTAL, ".");
 			exit(EXIT_FAILURE);
 		}
 	}
