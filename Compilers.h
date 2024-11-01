@@ -110,6 +110,10 @@ integer mainReader(integer argc, string* argv);
 integer mainScanner(integer argc, string* argv);
 integer mainParser(integer argc, string* argv);
 */
+typedef int simpleJS_intg;
+typedef int SimpleJS_intg;
+
+simpleJS_intg mainScanner(SimpleJS_intg argc SimpleJS_string* argv);
 
 void printLogo();
 

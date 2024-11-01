@@ -91,21 +91,21 @@
 
  /* Global objects - variables (used in other codes as external) */
 BufferPointer stringLiteralTable;	/* This buffer implements String Literal Table */
-sofia_intg errorNumber;				/* Run-time error number = 0 by default (ANSI) */
+simpleJS_intg errorNumber;				/* Run-time error number = 0 by default (ANSI) */
 
 /* External objects */
-extern sofia_intg line; /* Source code line numbers - defined in scanner.c */
-extern Token tokenizer(sofia_void);
+extern simpleJS_intg line; /* Source code line numbers - defined in scanner.c */
+extern Token tokenizer(simpleJS_void);
 
 /*
  * -------------------------------------------------------------
  *  Function declarations
  * -------------------------------------------------------------
  */
-sofia_void printScannerError(sofia_string fmt, ...);
-sofia_void displayScanner(BufferPointer ptrBuffer);
-sofia_long getScannerFilesize(sofia_string fname);
-sofia_void printToken(Token t);
+simpleJS_void printScannerError(simpleJS_string fmt, ...);
+simpleJS_void displayScanner(BufferPointer ptrBuffer);
+simpleJS_long getScannerFilesize(simpleJS_string fname);
+simpleJS_void printToken(Token t);
 
 /*
 ************************************************************
@@ -117,12 +117,12 @@ sofia_void printToken(Token t);
  ***********************************************************
  */
 
-sofia_intg mainScanner(sofia_intg argc, sofia_string* argv) {
+simpleJS_intg mainScanner(simpleJS_intg argc, simpleJS_string* argv) {
 
 	BufferPointer sourceBuffer;		/* Pointer to input (source) buffer */
 	FILE* fileHandler;				/* Input file handle */
 	Token currentToken;				/* Token produced by the scanner */
-	sofia_intg loadSize = 0;			/* The size of the file loaded in the buffer */
+	simpleJS_intg loadSize = 0;			/* The size of the file loaded in the buffer */
 
 	/* Check for correct arrguments - source file name */
 	if (argc <= 2) {
@@ -153,19 +153,19 @@ sofia_intg mainScanner(sofia_intg argc, sofia_string* argv) {
 	/* Load source file into input buffer  */
 	printf("Reading file %s ....Please wait\n", argv[2]);
 	loadSize = readerLoad(sourceBuffer, fileHandler);
-	if (loadSize == SOFIA_ERROR)
+	if (loadSize == simpleJS_ERROR)
 		printScannerError("%s%s", argv[0], ": Error in loading buffer.");
 
 	/* Close source file */
 	fclose(fileHandler);
 	/* Find the size of the file */
-	if (loadSize == SOFIA_ERROR) {
+	if (loadSize == simpleJS_ERROR) {
 		printf("The input file %s %s\n", argv[2], "is not completely loaded.");
 		printf("Input file size: %ld\n", getScannerFilesize(argv[2]));
 	}
 
 	/* Compact and display the source buffer and add SEOF to input program buffer */
-	if ((loadSize != SOFIA_ERROR) && (loadSize != 0)) {
+	if ((loadSize != simpleJS_ERROR) && (loadSize != 0)) {
 		if (readerAddChar(sourceBuffer, READER_TERMINATOR)) {
 			displayScanner(sourceBuffer);
 		}
@@ -220,7 +220,7 @@ sofia_intg mainScanner(sofia_intg argc, sofia_string* argv) {
 ***********************************************************
 */
 
-sofia_void printScannerError(sofia_string fmt, ...) {
+simpleJS_void printScannerError(simpleJS_string fmt, ...) {
 	va_list ap;
 	va_start(ap, fmt);
 	(void)vfprintf(stderr, fmt, ap);
@@ -238,7 +238,7 @@ sofia_void printScannerError(sofia_string fmt, ...) {
  ***********************************************************
  */
 
-sofia_void displayScanner(BufferPointer ptrBuffer) {
+simpleJS_void displayScanner(BufferPointer ptrBuffer) {
 	printf("\nPrinting buffer parameters:\n\n");
 	printf("The capacity of the buffer is:  %d\n", readerGetSize(ptrBuffer));
 	printf("The current size of the buffer is:  %d\n", readerGetPosWrte(ptrBuffer));
@@ -257,9 +257,9 @@ sofia_void displayScanner(BufferPointer ptrBuffer) {
  ***********************************************************
  */
 
-sofia_long getScannerFilesize(sofia_string fname) {
+simpleJS_long getScannerFilesize(simpleJS_string fname) {
 	FILE* fileInput;
-	sofia_long fileLength;
+	simpleJS_long fileLength;
 	fileInput = fopen(fname, "r");
 	if (fileInput == NULL) {
 		printScannerError("%s%s", "Cannot open file: ", fname);

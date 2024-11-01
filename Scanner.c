@@ -85,14 +85,14 @@ TO_DO: Global vars definitions
 /* Global objects - variables */
 /* This buffer is used as a repository for string literals. */
 extern BufferPointer stringLiteralTable;	/* String literal table */
-sofia_intg line;								/* Current line number of the source code */
-extern sofia_intg errorNumber;				/* Defined in platy_st.c - run-time error number */
+simpleJS_intg line;								/* Current line number of the source code */
+extern simpleJS_intg errorNumber;				/* Defined in platy_st.c - run-time error number */
 
-extern sofia_intg stateType[NUM_STATES];
-extern sofia_string keywordTable[KWT_SIZE];
+extern simpleJS_intg stateType[NUM_STATES];
+extern simpleJS_string keywordTable[KWT_SIZE];
 
 extern PTR_ACCFUN finalStateTable[NUM_STATES];
-extern sofia_intg transitionTable[NUM_STATES][CHAR_CLASSES];
+extern simpleJS_intg transitionTable[NUM_STATES][CHAR_CLASSES];
 
 /* Local(file) global objects - variables */
 static BufferPointer lexemeBuffer;			/* Pointer to temporary lexeme buffer */
@@ -106,9 +106,9 @@ static BufferPointer sourceBuffer;			/* Pointer to input source buffer */
  */
  /* TO_DO: Follow the standard and adjust datatypes */
 
-sofia_intg startScanner(BufferPointer psc_buf) {
+simpleJS_intg startScanner(BufferPointer psc_buf) {
 	/* TO_DO: Start histogram */
-	for (sofia_intg i=0; i<NUM_TOKENS;i++)
+	for (simpleJS_intg i=0; i<NUM_TOKENS;i++)
 		scData.scanHistogram[i] = 0;
 	/* Basic scanner initialization */
 	/* in case the buffer has been read previously  */
@@ -130,23 +130,23 @@ sofia_intg startScanner(BufferPointer psc_buf) {
  ***********************************************************
  */
 
-Token tokenizer(sofia_void) {
+Token tokenizer(simpleJS_void) {
 
 	/* TO_DO: Follow the standard and adjust datatypes */
 
 	Token currentToken = { 0 }; /* token to return after pattern recognition. Set all structure members to 0 */
-	sofia_char c;			/* input symbol */
-	sofia_intg state = 0;	/* initial state of the FSM */
-	sofia_intg lexStart;	/* start offset of a lexeme in the input char buffer (array) */
-	sofia_intg lexEnd;		/* end offset of a lexeme in the input char buffer (array)*/
+	simpleJS_char c;			/* input symbol */
+	simpleJS_intg state = 0;	/* initial state of the FSM */
+	simpleJS_intg lexStart;	/* start offset of a lexeme in the input char buffer (array) */
+	simpleJS_intg lexEnd;		/* end offset of a lexeme in the input char buffer (array)*/
 
-	sofia_intg lexLength;	/* token length */
-	sofia_intg i;			/* counter */
-	///sofia_char newc;		// new char
+	simpleJS_intg lexLength;	/* token length */
+	simpleJS_intg i;			/* counter */
+	///simpleJS_char newc;		// new char
 
 	/* Starting lexeme */
-	sofia_string lexeme;	/* lexeme (to check the function) */
-	lexeme = (sofia_string)malloc(VID_LEN * sizeof(sofia_char));
+	simpleJS_string lexeme;	/* lexeme (to check the function) */
+	lexeme = (simpleJS_string)malloc(VID_LEN * sizeof(simpleJS_char));
 	if (!lexeme)
 		return currentToken;
 	lexeme[0] = EOS_CHR;
@@ -230,7 +230,7 @@ Token tokenizer(sofia_void) {
 				readerRetract(sourceBuffer);
 			lexEnd = readerGetPosRead(sourceBuffer);
 			lexLength = lexEnd - lexStart;
-			lexemeBuffer = readerCreate((sofia_intg)lexLength + 2, 0, MODE_FIXED);
+			lexemeBuffer = readerCreate((simpleJS_intg)lexLength + 2, 0, MODE_FIXED);
 			if (!lexemeBuffer) {
 				fprintf(stderr, "Scanner error: Can not create buffer\n");
 				exit(1);
@@ -279,9 +279,9 @@ Token tokenizer(sofia_void) {
  */
  /* TO_DO: Just change the datatypes */
 
-sofia_intg nextState(sofia_intg state, sofia_char c) {
-	sofia_intg col;
-	sofia_intg next;
+simpleJS_intg nextState(simpleJS_intg state, simpleJS_char c) {
+	simpleJS_intg col;
+	simpleJS_intg next;
 	col = nextClass(c);
 	next = transitionTable[state][col];
 	if (DEBUG)
@@ -310,8 +310,8 @@ sofia_intg nextState(sofia_intg state, sofia_char c) {
 /*    [A-z],[0-9],    _,    &,   \', SEOF,    #, other
 	   L(0), D(1), U(2), M(3), Q(4), E(5), C(6),  O(7) */
 
-sofia_intg nextClass(sofia_char c) {
-	sofia_intg val = -1;
+simpleJS_intg nextClass(simpleJS_char c) {
+	simpleJS_intg val = -1;
 	switch (c) {
 	case UND_CHR:
 		val = 2;
@@ -348,9 +348,9 @@ sofia_intg nextClass(sofia_char c) {
  */
  /* TO_DO: Adjust the function for IL */
 
-Token funcCMT(sofia_string lexeme) {
+Token funcCMT(simpleJS_string lexeme) {
 	Token currentToken = { 0 };
-	sofia_intg i = 0, len = (sofia_intg)strlen(lexeme);
+	simpleJS_intg i = 0, len = (simpleJS_intg)strlen(lexeme);
 	currentToken.attribute.contentString = readerGetPosWrte(stringLiteralTable);
 	for (i = 1; i < len - 1; i++) {
 		if (lexeme[i] == NWL_CHR)
@@ -374,9 +374,9 @@ Token funcCMT(sofia_string lexeme) {
   */
   /* TO_DO: Adjust the function for IL */
 
-Token funcIL(sofia_string lexeme) {
+Token funcIL(simpleJS_string lexeme) {
 	Token currentToken = { 0 };
-	sofia_long tlong;
+	simpleJS_long tlong;
 	if (lexeme[0] != EOS_CHR && strlen(lexeme) > NUM_LEN) {
 		currentToken = (*finalStateTable[ESNR])(lexeme);
 	}
@@ -385,7 +385,7 @@ Token funcIL(sofia_string lexeme) {
 		if (tlong >= 0 && tlong <= SHRT_MAX) {
 			currentToken.code = INL_T;
 			scData.scanHistogram[currentToken.code]++;
-			currentToken.attribute.intValue = (sofia_intg)tlong;
+			currentToken.attribute.intValue = (simpleJS_intg)tlong;
 		}
 		else {
 			currentToken = (*finalStateTable[ESNR])(lexeme);
@@ -409,16 +409,16 @@ Token funcIL(sofia_string lexeme) {
  */
  /* TO_DO: Adjust the function for ID */
 
-Token funcID(sofia_string lexeme) {
+Token funcID(simpleJS_string lexeme) {
 	Token currentToken = { 0 };
 	size_t length = strlen(lexeme);
-	sofia_char lastch = lexeme[length - 1];
-	sofia_intg isID = SOFIA_FALSE;
+	simpleJS_char lastch = lexeme[length - 1];
+	simpleJS_intg isID = simpleJS_FALSE;
 	switch (lastch) {
 		case AMP_CHR:
 			currentToken.code = MNID_T;
 			scData.scanHistogram[currentToken.code]++;
-			isID = SOFIA_TRUE;
+			isID = simpleJS_TRUE;
 			break;
 		default:
 			// Test Keyword
@@ -426,7 +426,7 @@ Token funcID(sofia_string lexeme) {
 			currentToken = funcKEY(lexeme);
 			break;
 	}
-	if (isID == SOFIA_TRUE) {
+	if (isID == simpleJS_TRUE) {
 		strncpy(currentToken.attribute.idLexeme, lexeme, VID_LEN);
 		currentToken.attribute.idLexeme[VID_LEN] = EOS_CHR;
 	}
@@ -446,9 +446,9 @@ Token funcID(sofia_string lexeme) {
  */
 /* TO_DO: Adjust the function for SL */
 
-Token funcSL(sofia_string lexeme) {
+Token funcSL(simpleJS_string lexeme) {
 	Token currentToken = { 0 };
-	sofia_intg i = 0, len = (sofia_intg)strlen(lexeme);
+	simpleJS_intg i = 0, len = (simpleJS_intg)strlen(lexeme);
 	currentToken.attribute.contentString = readerGetPosWrte(stringLiteralTable);
 	for (i = 1; i < len - 1; i++) {
 		if (lexeme[i] == NWL_CHR)
@@ -482,10 +482,10 @@ Token funcSL(sofia_string lexeme) {
  */
  /* TO_DO: Adjust the function for Keywords */
 
-Token funcKEY(sofia_string lexeme) {
+Token funcKEY(simpleJS_string lexeme) {
 	Token currentToken = { 0 };
-	sofia_intg kwindex = -1, j = 0;
-	sofia_intg len = (sofia_intg)strlen(lexeme);
+	simpleJS_intg kwindex = -1, j = 0;
+	simpleJS_intg len = (simpleJS_intg)strlen(lexeme);
 	///lexeme[len - 1] = EOS_CHR;
 	for (j = 0; j < KWT_SIZE; j++)
 		if (!strcmp(lexeme, &keywordTable[j][0]))
@@ -514,9 +514,9 @@ Token funcKEY(sofia_string lexeme) {
  */
  /* TO_DO: Adjust the function for Errors */
 
-Token funcErr(sofia_string lexeme) {
+Token funcErr(simpleJS_string lexeme) {
 	Token currentToken = { 0 };
-	sofia_intg i = 0, len = (sofia_intg)strlen(lexeme);
+	simpleJS_intg i = 0, len = (simpleJS_intg)strlen(lexeme);
 	if (len > ERR_LEN) {
 		strncpy(currentToken.attribute.errLexeme, lexeme, ERR_LEN - 3);
 		currentToken.attribute.errLexeme[ERR_LEN - 3] = EOS_CHR;
@@ -540,8 +540,8 @@ Token funcErr(sofia_string lexeme) {
  ***********************************************************
  */
 
-sofia_void printToken(Token t) {
-	extern sofia_string keywordTable[]; /* link to keyword table in */
+simpleJS_void printToken(Token t) {
+	extern simpleJS_string keywordTable[]; /* link to keyword table in */
 	switch (t.code) {
 	case RTE_T:
 		printf("RTE_T\t\t%s", t.attribute.errLexeme);
@@ -562,8 +562,8 @@ sofia_void printToken(Token t) {
 		printf("MNID_T\t\t%s\n", t.attribute.idLexeme);
 		break;
 	case STR_T:
-		printf("STR_T\t\t%d\t ", (sofia_intg)t.attribute.codeType);
-		printf("%s\n", readerGetContent(stringLiteralTable, (sofia_intg)t.attribute.codeType));
+		printf("STR_T\t\t%d\t ", (simpleJS_intg)t.attribute.codeType);
+		printf("%s\n", readerGetContent(stringLiteralTable, (simpleJS_intg)t.attribute.codeType));
 		break;
 	case LPR_T:
 		printf("LPR_T\n");
@@ -600,7 +600,7 @@ sofia_void printToken(Token t) {
  *	- Void (procedure)
  ***********************************************************
  */
-sofia_void printScannerData(ScannerData scData) {
+simpleJS_void printScannerData(ScannerData scData) {
 	/* Print Scanner statistics */
 	printf("Statistics:\n");
 	printf("----------------------------------\n");

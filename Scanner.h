@@ -135,39 +135,39 @@ typedef enum SourceEndOfFile { SEOF_0, SEOF_255 } EofOperator;
 
 /* TO_DO: Data structures for declaring the token and its attributes */
 typedef union TokenAttribute {
-	sofia_intg codeType;      /* integer attributes accessor */
+	simpleJS_intg codeType;      /* integer attributes accessor */
 	AriOperator arithmeticOperator;		/* arithmetic operator attribute code */
 	RelOperator relationalOperator;		/* relational operator attribute code */
 	LogOperator logicalOperator;		/* logical operator attribute code */
 	EofOperator seofType;				/* source-end-of-file attribute code */
-	sofia_intg intValue;				/* integer literal attribute (value) */
-	sofia_intg keywordIndex;			/* keyword index in the keyword table */
-	sofia_intg contentString;			/* string literal offset from the beginning of the string literal buffer (stringLiteralTable->content) */
-	sofia_real floatValue;				/* floating-point literal attribute (value) */
-	sofia_char idLexeme[VID_LEN + 1];	/* variable identifier token attribute */
-	sofia_char errLexeme[ERR_LEN + 1];	/* error token attribite */
+	simpleJS_intg intValue;				/* integer literal attribute (value) */
+	simpleJS_intg keywordIndex;			/* keyword index in the keyword table */
+	simpleJS_intg contentString;			/* string literal offset from the beginning of the string literal buffer (stringLiteralTable->content) */
+	simpleJS_real floatValue;				/* floating-point literal attribute (value) */
+	simpleJS_char idLexeme[VID_LEN + 1];	/* variable identifier token attribute */
+	simpleJS_char errLexeme[ERR_LEN + 1];	/* error token attribite */
 } TokenAttribute;
 
 /* TO_DO: Should be used if no symbol table is implemented */
 typedef struct idAttibutes {
-	sofia_byte flags;			/* Flags information */
+	simpleJS_byte flags;			/* Flags information */
 	union {
-		sofia_intg intValue;				/* Integer value */
-		sofia_real floatValue;			/* Float value */
-		sofia_string stringContent;		/* String value */
+		simpleJS_intg intValue;				/* Integer value */
+		simpleJS_real floatValue;			/* Float value */
+		simpleJS_string stringContent;		/* String value */
 	} values;
 } IdAttibutes;
 
 /* Token declaration */
 typedef struct Token {
-	sofia_intg code;				/* token code */
+	simpleJS_intg code;				/* token code */
 	TokenAttribute attribute;	/* token attribute */
 	IdAttibutes   idAttribute;	/* not used in this scanner implementation - for further use */
 } Token;
 
 /* Scanner */
 typedef struct scannerData {
-	sofia_intg scanHistogram[NUM_TOKENS];	/* Statistics of chars */
+	simpleJS_intg scanHistogram[NUM_TOKENS];	/* Statistics of chars */
 } ScannerData, * pScanData;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -188,6 +188,16 @@ typedef struct scannerData {
 #define RPR_CHR ')'		// CH11
 #define LBR_CHR '{'		// CH12
 #define RBR_CHR '}'		// CH13
+#define SLH_CHR '/'		// CH14
+#define STR_CHR '*'		// CH15
+#define ADD_CHR '+'		// CH16
+#define MIN_CHR '-'		// CH17
+#define DIV_CHR '/'		// CH18
+#define LTR_CHR 'a-z', 'A-Z'	// CH19
+#define DGT_CHR '0-9'		// CH20
+#define K_CHR '$'		// CH21
+#define DOT_CHR '.'		// CH22
+#define QTE_CHR '"'		// CH23
 
 /*  Special case tokens processed separately one by one in the token-driven part of the scanner:
  *  LPR_T, RPR_T, LBR_T, RBR_T, EOS_T, SEOF_T and special chars used for tokenis include _, & and ' */
@@ -203,7 +213,7 @@ typedef struct scannerData {
 #define CHAR_CLASSES	8
 
 /* TO_DO: Transition table - type of states defined in separate table */
-static sofia_intg transitionTable[NUM_STATES][CHAR_CLASSES] = {
+static simpleJS_intg transitionTable[NUM_STATES][CHAR_CLASSES] = {
 /*    [A-z],[0-9],    _,    &,   \', SEOF,    #, other
 	   L(0), D(1), U(2), M(3), Q(4), E(5), C(6),  O(7) */
 	{     1, ESNR, ESNR, ESNR,    4, ESWR,	  6, ESNR},	// S0: NOAS
@@ -224,7 +234,7 @@ static sofia_intg transitionTable[NUM_STATES][CHAR_CLASSES] = {
 #define FSWR	2		/* accepting state with retract */
 
 /* TO_DO: Define list of acceptable states */
-static sofia_intg stateType[NUM_STATES] = {
+static simpleJS_intg stateType[NUM_STATES] = {
 	NOFS, /* 00 */
 	NOFS, /* 01 */
 	FSNR, /* 02 (MID) - Methods */
@@ -244,11 +254,11 @@ TO_DO: Adjust your functions'definitions
 */
 
 /* Static (local) function  prototypes */
-sofia_intg			startScanner(BufferPointer psc_buf);
-static sofia_intg	nextClass(sofia_char c);					/* character class function */
-static sofia_intg	nextState(sofia_intg, sofia_char);		/* state machine function */
-sofia_void			printScannerData(ScannerData scData);
-Token				tokenizer(sofia_void);
+simpleJS_intg			startScanner(BufferPointer psc_buf);
+static simpleJS_intg	nextClass(simpleJS_char c);					/* character class function */
+static simpleJS_intg	nextState(simpleJS_intg, simpleJS_char);		/* state machine function */
+simpleJS_void			printScannerData(ScannerData scData);
+Token					tokenizer(simpleJS_void);
 
 /*
 -------------------------------------------------
@@ -257,15 +267,15 @@ Automata definitions
 */
 
 /* TO_DO: Pointer to function (of one char * argument) returning Token */
-typedef Token(*PTR_ACCFUN)(sofia_string lexeme);
+typedef Token(*PTR_ACCFUN)(simpleJS_string lexeme);
 
 /* Declare accepting states functions */
-Token funcSL	(sofia_string lexeme);
-Token funcIL	(sofia_string lexeme);
-Token funcID	(sofia_string lexeme);
-Token funcCMT   (sofia_string lexeme);
-Token funcKEY	(sofia_string lexeme);
-Token funcErr	(sofia_string lexeme);
+Token funcSL	(simpleJS_string lexeme);
+Token funcIL	(simpleJS_string lexeme);
+Token funcID	(simpleJS_string lexeme);
+Token funcCMT   (simpleJS_string lexeme);
+Token funcKEY	(simpleJS_string lexeme);
+Token funcErr	(simpleJS_string lexeme);
 
 /* 
  * Accepting function (action) callback table (array) definition 
@@ -296,7 +306,7 @@ Language keywords
 #define KWT_SIZE 11
 
 /* TO_DO: Define the list of keywords */
-static sofia_string keywordTable[KWT_SIZE] = {
+static simpleJS_string keywordTable[KWT_SIZE] = {
 	"data",		/* KW00 */
 	"code",		/* KW01 */
 	"int",		/* KW02 */
@@ -320,13 +330,13 @@ static sofia_string keywordTable[KWT_SIZE] = {
 
 /* TO_DO: Should be used if no symbol table is implemented */
 typedef struct languageAttributes {
-	sofia_char indentationCharType;
-	sofia_intg indentationCurrentPos;
+	simpleJS_char indentationCharType;
+	simpleJS_intg indentationCurrentPos;
 	/* TO_DO: Include any extra attribute to be used in your scanner (OPTIONAL and FREE) */
 } LanguageAttributes;
 
 /* Number of errors */
-sofia_intg numScannerErrors;
+simpleJS_intg numScannerErrors;
 
 /* Scanner data */
 ScannerData scData;
