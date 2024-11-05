@@ -701,7 +701,8 @@ void readerPrintStat(BufferPointer const readerPointer) {
 
 	integer i;
 	for (i = 0; i < NCHAR; i++) {
-		printf("Character %c: %d\n", (char)i, readerPointer->histogram[i]);
+		if (readerPointer->histogram[i] != 0)
+			printf("Character %c: %d\n", (char)i, readerPointer->histogram[i]);
 	}
 }
 
