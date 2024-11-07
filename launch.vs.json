@@ -8,9 +8,8 @@
       "projectTarget": "SimpleJS.exe",
       "name": "SimpleJS.exe",
       "args": [
-        "1",
-        "INPUT6_Big.sof",
-        "t"
+        "2",
+        "README.txt"
       ]
     }
   ]
