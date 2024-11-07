@@ -451,14 +451,10 @@ boolean readerRetract(BufferPointer const readerPointer) {
 		return FALSE;
 	}
 
+	// Decrement the read position only once
 	readerPointer->positions.read--;
 
-	if (readerPointer->positions.read > 0) {
-		readerPointer->positions.read--;
-		return TRUE;
-	}
-
-	return FALSE;
+	return TRUE;
 }
 
 
