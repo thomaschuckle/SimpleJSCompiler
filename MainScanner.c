@@ -2,7 +2,7 @@
 ************************************************************
 * COMPILERS COURSE - Algonquin College
 * Code version: Fall, 2024
-* Author: TO_DO
+* Author: Vi Tuan Ha, Corey Lambert
 * Professors: Paulo Sousa
 ************************************************************
 #
@@ -23,7 +23,7 @@
 # ECHO "    @@     @ @@   /@/   @@@ @      @@    ”
 # ECHO "    @@     @@@@@@@@@@@@@@@         @@    ”
 # ECHO "    @@                             @@    ”
-# ECHO "    @@         S O F I A           @@    ”
+# ECHO "    @@           S J S             @@    ”
 # ECHO "    @@                             @@    ”
 # ECHO "    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@    ”
 # ECHO "                                         "
@@ -76,7 +76,7 @@
 #include "Scanner.h"
 #endif
 
- /*check for ANSI C compliancy */
+/*check for ANSI C compliancy */
 #define ANSI_C 0
 #if defined(__STDC__)
 #undef ANSI_C
@@ -89,27 +89,27 @@
  * -------------------------------------------------------------
  */
 
- /* Global objects - variables (used in other codes as external) */
-BufferPointer stringLiteralTable;	/* This buffer implements String Literal Table */
-simpleJS_intg errorNumber;				/* Run-time error number = 0 by default (ANSI) */
+/* Global objects - variables (used in other codes as external) */
+BufferPointer stringLiteralTable;		/* This buffer implements String Literal Table */
+integer errorNumber;					/* Run-time error number = 0 by default (ANSI) */
 
 /* External objects */
-extern simpleJS_intg line; /* Source code line numbers - defined in scanner.c */
-extern Token tokenizer(simpleJS_void);
+extern integer line;					/* Source code line numbers - defined in scanner.c */
+extern Token tokenizer(void);
 
 /*
  * -------------------------------------------------------------
  *  Function declarations
  * -------------------------------------------------------------
  */
-simpleJS_void printScannerError(simpleJS_string fmt, ...);
-simpleJS_void displayScanner(BufferPointer ptrBuffer);
-simpleJS_long getScannerFilesize(simpleJS_string fname);
-simpleJS_void printToken(Token t);
+void printScannerError(string fmt, ...);
+void displayScanner(BufferPointer ptrBuffer);
+long getScannerFilesize(string fname);
+void printToken(Token t);
 
 /*
 ************************************************************
- *  Scanner Main function
+ * Scanner Main function
  * Parameters:
  *   argc / argv = Parameters from command prompt
  * Return value:
@@ -117,12 +117,12 @@ simpleJS_void printToken(Token t);
  ***********************************************************
  */
 
-simpleJS_intg mainScanner(simpleJS_intg argc, simpleJS_string* argv) {
+integer mainScanner(integer argc, string* argv) {
 
 	BufferPointer sourceBuffer;		/* Pointer to input (source) buffer */
 	FILE* fileHandler;				/* Input file handle */
 	Token currentToken;				/* Token produced by the scanner */
-	simpleJS_intg loadSize = 0;			/* The size of the file loaded in the buffer */
+	integer loadSize = 0;			/* The size of the file loaded in the buffer */
 
 	/* Check for correct arrguments - source file name */
 	if (argc <= 2) {
@@ -153,19 +153,19 @@ simpleJS_intg mainScanner(simpleJS_intg argc, simpleJS_string* argv) {
 	/* Load source file into input buffer  */
 	printf("Reading file %s ....Please wait\n", argv[2]);
 	loadSize = readerLoad(sourceBuffer, fileHandler);
-	if (loadSize == simpleJS_ERROR)
+	if (loadSize == ERROR)
 		printScannerError("%s%s", argv[0], ": Error in loading buffer.");
 
 	/* Close source file */
 	fclose(fileHandler);
 	/* Find the size of the file */
-	if (loadSize == simpleJS_ERROR) {
+	if (loadSize == ERROR) {
 		printf("The input file %s %s\n", argv[2], "is not completely loaded.");
 		printf("Input file size: %ld\n", getScannerFilesize(argv[2]));
 	}
 
 	/* Compact and display the source buffer and add SEOF to input program buffer */
-	if ((loadSize != simpleJS_ERROR) && (loadSize != 0)) {
+	if ((loadSize != ERROR) && (loadSize != 0)) {
 		if (readerAddChar(sourceBuffer, READER_TERMINATOR)) {
 			displayScanner(sourceBuffer);
 		}
@@ -220,7 +220,7 @@ simpleJS_intg mainScanner(simpleJS_intg argc, simpleJS_string* argv) {
 ***********************************************************
 */
 
-simpleJS_void printScannerError(simpleJS_string fmt, ...) {
+void printScannerError(string fmt, ...) {
 	va_list ap;
 	va_start(ap, fmt);
 	(void)vfprintf(stderr, fmt, ap);
@@ -238,7 +238,7 @@ simpleJS_void printScannerError(simpleJS_string fmt, ...) {
  ***********************************************************
  */
 
-simpleJS_void displayScanner(BufferPointer ptrBuffer) {
+void displayScanner(BufferPointer ptrBuffer) {
 	printf("\nPrinting buffer parameters:\n\n");
 	printf("The capacity of the buffer is:  %d\n", readerGetSize(ptrBuffer));
 	printf("The current size of the buffer is:  %d\n", readerGetPosWrte(ptrBuffer));
@@ -257,9 +257,9 @@ simpleJS_void displayScanner(BufferPointer ptrBuffer) {
  ***********************************************************
  */
 
-simpleJS_long getScannerFilesize(simpleJS_string fname) {
+long getScannerFilesize(string fname) {
 	FILE* fileInput;
-	simpleJS_long fileLength;
+	long fileLength;
 	fileInput = fopen(fname, "r");
 	if (fileInput == NULL) {
 		printScannerError("%s%s", "Cannot open file: ", fname);
