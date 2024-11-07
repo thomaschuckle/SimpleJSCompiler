@@ -2,7 +2,7 @@
 ************************************************************
 * COMPILERS COURSE - Algonquin College
 * Code version: Fall, 2024
-* Author: Vi Tuan Ha
+* Author: Vi Tuan Ha, Corey Lambert
 * Professors: Paulo Sousa
 ************************************************************
 #
