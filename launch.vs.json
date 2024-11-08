@@ -9,7 +9,7 @@
       "name": "SimpleJS.exe",
       "args": [
         "2",
-        "README.txt"
+        "simpleJS_INPUT.txt"
       ]
     }
   ]
