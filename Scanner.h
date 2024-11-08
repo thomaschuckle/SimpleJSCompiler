@@ -319,7 +319,7 @@ typedef struct scannerData {
 #define NUM_STATES		21 + 2
 #define CHAR_CLASSES	11
 
-int transitionTable[NUM_STATES][CHAR_CLASSES] = {
+static int transitionTable[NUM_STATES][CHAR_CLASSES] = {
 	/*         SL      \n     S       U       L       EQ      P       D       Q       SQ      O    */
 	/*  0 */ {  1,   ESNR,  ESNR,   8,      8,      ESNR,   ESNR,   12,     14,     18,    ESNR },
 	/*  1 */ {  2,   ESNR,  4,      ESNR,   ESNR,   16,     ESNR,   ESNR,   ESNR,   ESNR,  ESNR },
