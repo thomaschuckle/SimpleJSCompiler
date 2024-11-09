@@ -90,7 +90,7 @@
  */
 
 /* Global objects - variables (used in other codes as external) */
-BufferPointer stringLiteralTable;		/* This buffer implements String Literal Table */
+BufferPointer stringLiteralBuffer;		/* This buffer implements String Literal Table */
 integer errorNumber;					/* Run-time error number = 0 by default (ANSI) */
 
 /* External objects */
@@ -172,8 +172,8 @@ integer mainScanner(integer argc, string* argv) {
 	}
 
 	/* Create string Literal Table */
-	stringLiteralTable = readerCreate(READER_DEFAULT_SIZE, READER_DEFAULT_INCREMENT, MODE_ADDIT);
-	if (stringLiteralTable == NULL) {
+	stringLiteralBuffer = readerCreate(READER_DEFAULT_SIZE, READER_DEFAULT_INCREMENT, MODE_ADDIT);
+	if (stringLiteralBuffer == NULL) {
 		printScannerError("%s%s", argv[0], ": Could not create string literals buffer");
 		exit(EXIT_FAILURE);
 	}
@@ -196,13 +196,13 @@ integer mainScanner(integer argc, string* argv) {
 	/* Print String Literal Table if not empty */
 	printf("\nPrinting string table...\n");
 	printf("----------------------------------\n");
-	if (readerGetPosWrte(stringLiteralTable)) {
-		readerPrint(stringLiteralTable);
+	if (readerGetPosWrte(stringLiteralBuffer)) {
+		readerPrint(stringLiteralBuffer);
 	}
 	printf("\n----------------------------------\n");
 	readerRestore(sourceBuffer); //xxx
-	readerRestore(stringLiteralTable); //xxx
-	sourceBuffer = stringLiteralTable = NULL;
+	readerRestore(stringLiteralBuffer); //xxx
+	sourceBuffer = stringLiteralBuffer = NULL;
 	printScannerData(scData);
 	/* Ass2 evaluation only */
 	if (argv[3] != NULL && *argv[3] == 'l')
