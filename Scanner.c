@@ -81,7 +81,7 @@ Global vars definitions
 
 /* Global objects - variables */
 /* This buffer is used as a repository for string literals. */
-extern BufferPointer stringLiteralTable;	/* String literal table */
+extern BufferPointer stringLiteralBuffer;	/* String literal table */
 integer line;								/* Current line number of the source code */
 extern integer errorNumber;					/* Defined in platy_st.c - run-time error number */
 
@@ -102,13 +102,24 @@ static BufferPointer sourceBuffer;			/* Pointer to input source buffer */
  ***********************************************************
  */
 
+void removeWhitespace(char* str) {
+	int i = 0, j = 0;
+	while (str[i] != '\0') {
+		if (!isspace(str[i])) {  // Check if the character is not a whitespace
+			str[j++] = str[i];    // Copy non-whitespace character to the new position
+		}
+		i++;
+	}
+	str[j] = '\0';  // Null-terminate the new string
+}
+
 integer startScanner(BufferPointer psc_buf) {
 	for (integer i=0; i<NUM_TOKENS;i++)
 		scData.scanHistogram[i] = 0;
 	/* Basic scanner initialization */
 	/* in case the buffer has been read previously  */
 	readerRecover(psc_buf);
-	readerClear(stringLiteralTable);
+	readerClear(stringLiteralBuffer);
 	line = 1;
 	sourceBuffer = psc_buf;
 	return EXIT_SUCCESS; /*0*/
@@ -164,7 +175,6 @@ Token tokenizer(void) {
 		*/
 
 		switch (c) {
-		
 		/* White Space and Newline */
 		case SPC_CHR:
 		case TAB_CHR:
@@ -178,19 +188,24 @@ Token tokenizer(void) {
 		/* Basic Symbols */
 		case SCL_CHR:	// ;
 			currentToken.code = EOS_T;
-			break;
+			scData.scanHistogram[currentToken.code]++;
+			return currentToken;
 		case LPR_CHR:  // (
 			currentToken.code = LPR_T;
-			break;
+			scData.scanHistogram[currentToken.code]++;
+			return currentToken;
 		case RPR_CHR:  // )
 			currentToken.code = RPR_T;
-			break;
+			scData.scanHistogram[currentToken.code]++;
+			return currentToken;
 		case LBR_CHR:  // {
 			currentToken.code = LBR_T;
-			break;
+			scData.scanHistogram[currentToken.code]++;
+			return currentToken;
 		case RBR_CHR:  // }
 			currentToken.code = RBR_T;
-			break;
+			scData.scanHistogram[currentToken.code]++;
+			return currentToken;
 
 		/* Assignment and Comparison Operators */
 		case EQ_CHR:  // =
@@ -204,46 +219,51 @@ Token tokenizer(void) {
 					readerRetract(sourceBuffer);   // retract for ==
 			}
 			else {
-				currentToken.code = ASNG_T;  // =
+				currentToken.code = ASGN_T;  // =
 				readerRetract(sourceBuffer);
 			}
-			break;
+			scData.scanHistogram[currentToken.code]++;
+			return currentToken;
 
 		/* Arithmetic Operators */
 		case ADD_CHR:  // +
 			c = readerGetChar(sourceBuffer);
 			if (c == EQ_CHR)
-				currentToken.code = ADD_ASNG_T;  // +=
+				currentToken.code = ADD_ASGN_T;  // +=
 			else {
 				currentToken.code = ADD_T;       // +
-				readereRetract(sourceBuffer);
+				readerRetract(sourceBuffer);
 			}
-			break;
+			scData.scanHistogram[currentToken.code]++;
+			return currentToken;
 
 		case MIN_CHR:  // -
 			c = readerGetChar(sourceBuffer);
 			if (c == EQ_CHR)
-				currentToken.code = SUB_ASNG_T;  // -=
+				currentToken.code = SUB_ASGN_T;  // -=
 			else {
 				currentToken.code = SUB_T;       // -
 				readerRetract(sourceBuffer);
 			}
-			break;
+			scData.scanHistogram[currentToken.code]++;
+			return currentToken;
 
 		case MUL_CHR:  // *
 			c = readerGetChar(sourceBuffer);
 			if (c == EQ_CHR)
-				currentToken.code = MUL_ASNG_T;  // *=
+				currentToken.code = MUL_ASGN_T;  // *=
 			else {
 				currentToken.code = MUL_T;       // *
 				readerRetract(sourceBuffer);
 			}
-			break;
+			scData.scanHistogram[currentToken.code]++;
+			return currentToken;
 
 		/* Modulo Operator */
 		case PERC_CHR:  // %
 			currentToken.code = MOD_T;
-			break;
+			scData.scanHistogram[currentToken.code]++;
+			return currentToken;
 
 		/* Comparison Operators */
 		case LT_CHR:  // <
@@ -254,7 +274,8 @@ Token tokenizer(void) {
 				currentToken.code = LT_T;        // <
 				readerRetract(sourceBuffer);
 			}
-			break;
+			scData.scanHistogram[currentToken.code]++;
+			return currentToken;
 
 		case GT_CHR:  // >
 			c = readerGetChar(sourceBuffer);
@@ -271,7 +292,8 @@ Token tokenizer(void) {
 				currentToken.code = GT_T;         // >
 				readerRetract(sourceBuffer);
 			}
-			break;
+			scData.scanHistogram[currentToken.code]++;
+			return currentToken;
 
 		/* Logical and Bitwise Operators */
 		case AMP_CHR:  // &
@@ -282,7 +304,8 @@ Token tokenizer(void) {
 				currentToken.code = BIT_AND_T;   // &
 				readerRetract(sourceBuffer);
 			}
-			break;
+			scData.scanHistogram[currentToken.code]++;
+			return currentToken;
 
 		case PIPE_CHR:  // |
 			c = readerGetChar(sourceBuffer);
@@ -292,34 +315,42 @@ Token tokenizer(void) {
 				currentToken.code = BIT_OR_T;    // |
 				readerRetract(sourceBuffer);
 			}
-			break;
+			scData.scanHistogram[currentToken.code]++;
+			return currentToken;
 
 		/* Bitwise Operators */
 		case CARET_CHR:  // ^
 			currentToken.code = BIT_XOR_T;
-			break;
+			scData.scanHistogram[currentToken.code]++;
+			return currentToken;
 		case TILDE_CHR:  // ~
 			currentToken.code = BIT_NOT_T;
-			break;
+			scData.scanHistogram[currentToken.code]++;
+			return currentToken;
 
 		/* Additional Delimiters */
 		case COM_CHR:  // ,
 			currentToken.code = COMMA_T;
-			break;
+			scData.scanHistogram[currentToken.code]++;
+			return currentToken;
 		case COL_CHR:  // :
 			currentToken.code = COLON_T;
-			break;
+			scData.scanHistogram[currentToken.code]++;
+			return currentToken;
 		case DOT_CHR:  // .
 			currentToken.code = DOT_T;
-			break;
+			scData.scanHistogram[currentToken.code]++;
+			return currentToken;
 
 		/* Brackets */
 		case LBRK_CHR:  // [
 			currentToken.code = LBRACKET_T;
-			break;
+			scData.scanHistogram[currentToken.code]++;
+			return currentToken;
 		case RBRK_CHR:  // ]
 			currentToken.code = RBRACKET_T;
-			break;
+			scData.scanHistogram[currentToken.code]++;
+			return currentToken;
 
 		/* Template Literal Tokens */
 		case BCKT_CHR:  // `
@@ -328,16 +359,19 @@ Token tokenizer(void) {
 			else
 				currentToken.code = TEMPLATE_END_T;
 			isTemplateStart = !isTemplateStart;  // toggle for template literals
-			break;
+			scData.scanHistogram[currentToken.code]++;
+			return currentToken;
 
 		/* End of File or String */
 		case EOS_CHR:  // \0
 			currentToken.code = SEOF_T;
 			currentToken.attribute.seofType = SEOF_0;
+			scData.scanHistogram[currentToken.code]++;
 			return currentToken;
 		case EOF_CHR:  // 0xFF
 			currentToken.code = SEOF_T;
 			currentToken.attribute.seofType = SEOF_255;
+			scData.scanHistogram[currentToken.code]++;
 			return currentToken;
 
 		/* ------------------------------------------------------------------------
@@ -346,44 +380,41 @@ Token tokenizer(void) {
 			-----------------------------------------------------------------------
 		*/
 
-		/* TO_DO: Adjust / check the logic for your language */
-
 		default: // general case
 			state = nextState(state, c);
-			lexStart = readerGetPosRead(sourceBuffer) - 1;
-			readerSetMark(sourceBuffer, lexStart);
+			lexStart = readerGetPosRead(sourceBuffer) - 1;	// When you readerGetChar() at line 150, posRead++ so have to -1 to get back to prev position.
+			readerSetMark(sourceBuffer, lexStart);			// Set the mark of sourceBuffer to the start of the lexeme in sourceBuffer.
 			int pos = 0;
 			while (stateType[state] == NOFS) {
-				c = readerGetChar(sourceBuffer);
-				state = nextState(state, c);
+				c = readerGetChar(sourceBuffer);			// Get next char until able to identify lexeme (a state that is NOT NOFS).
+				state = nextState(state, c);				// Get next state based on the current state and the next char.
 				pos++;
 			}
-			if (stateType[state] == FSWR)
-				readerRetract(sourceBuffer);
-			lexEnd = readerGetPosRead(sourceBuffer);
-			lexLength = lexEnd - lexStart;
+			if (stateType[state] == FSWR && state != 9 && state != 10) {			// If the state is FSWR, then retract the last char.
+				readerRetract(sourceBuffer);										// Retract the last char.
+			}
+			lexEnd = readerGetPosRead(sourceBuffer);		// Get the end position of the lexeme in sourceBuffer.
+			lexLength = lexEnd - lexStart;					// Calculate the length of the lexeme.
 			lexemeBuffer = readerCreate((integer)lexLength + 2, 0, MODE_FIXED);
 			if (!lexemeBuffer) {
 				fprintf(stderr, "Scanner error: Can not create buffer\n");
 				exit(1);
 			}
-			readerRestore(sourceBuffer);
+			readerRestore(sourceBuffer);					// Restore the sourceBuffer to the mark to copy lexem over lexemeBuffer
 			for (i = 0; i < lexLength; i++)
-				readerAddChar(lexemeBuffer, readerGetChar(sourceBuffer));
-			readerAddChar(lexemeBuffer, READER_TERMINATOR);
-			lexeme = readerGetContent(lexemeBuffer, 0);
-			// TO_DO: Defensive programming
+				readerAddChar(lexemeBuffer, readerGetChar(sourceBuffer));	// Copy the lexeme from sourceBuffer to lexemeBuffer, while advancing back the sourceBuffer to the end of the current lexeme.
+			readerAddChar(lexemeBuffer, READER_TERMINATOR);					// Add the terminator to the lexemeBuffer.		
+			lexeme = readerGetContent(lexemeBuffer, 0);						// Get the content of the lexemeBuffer.		
 			if (!lexeme)
 				return currentToken;
-			currentToken = (*finalStateTable[state])(lexeme);
-			readerRestore(lexemeBuffer);
-			return currentToken;
+			currentToken = (*finalStateTable[state])(lexeme);			// Check final state table to call the correct function based on the state.
+			readerRestore(lexemeBuffer);									// Restore the lexemeBuffer.
+			return currentToken;											// Return the currentToken.
 		} // switch
 
 	} //while
 
 } // tokenizer
-
 
 /*
  ************************************************************
@@ -443,7 +474,7 @@ integer nextClass(character c) {
 
 	switch (c) {
 	case SLH_CHR:  // "/"
-		val = 0;  // Slash for comments
+		val = 0;  // Slash for single line comments, multiline comments, division operator or /=
 		break;
 	case NWL_CHR:  // "\n"
 		val = 1;  // Newline character
@@ -485,12 +516,12 @@ integer nextClass(character c) {
  *		Function responsible to identify COM (comments).
  ***********************************************************
  */
- /* TO_DO: Adjust the function for IL */
 
 Token funcCMT(string lexeme) {
+	printf("Comment: %s\n", lexeme);
 	Token currentToken = { 0 };
 	integer i = 0, len = (integer)strlen(lexeme);
-	currentToken.attribute.contentString = readerGetPosWrte(stringLiteralTable);
+	currentToken.attribute.contentString = readerGetPosWrte(stringLiteralBuffer);
 	for (i = 1; i < len - 1; i++) {
 		if (lexeme[i] == NWL_CHR)
 			line++;
@@ -499,7 +530,6 @@ Token funcCMT(string lexeme) {
 	scData.scanHistogram[currentToken.code]++;
 	return currentToken;
 }
-
 
  /*
   ************************************************************
@@ -511,9 +541,9 @@ Token funcCMT(string lexeme) {
   *   additional three dots (...) should be put in the output.
   ***********************************************************
   */
-  /* TO_DO: Adjust the function for IL */
 
 Token funcIL(string lexeme) {
+	printf("Integer Literal: %s\n", lexeme);
 	Token currentToken = { 0 };
 	long tlong;
 	if (lexeme[0] != EOS_CHR && strlen(lexeme) > NUM_LEN) {
@@ -533,7 +563,6 @@ Token funcIL(string lexeme) {
 	return currentToken;
 }
 
-
 /*
  ************************************************************
  * Acceptance State Function ID
@@ -546,15 +575,20 @@ Token funcIL(string lexeme) {
  *  - Suggestion: Use "strncpy" function.
  ***********************************************************
  */
- /* TO_DO: Adjust the function for ID */
 
 Token funcID(string lexeme) {
+	printf("Identifier: %s\n", lexeme);
 	Token currentToken = { 0 };
 	size_t length = strlen(lexeme);
 	character lastch = lexeme[length - 1];
 	integer isID = FALSE;
 	switch (lastch) {
-		case AMP_CHR:
+		case EQ_CHR:
+			currentToken.code = VID_T;
+			scData.scanHistogram[currentToken.code]++;
+			isID = TRUE;
+			break;
+		case LPR_CHR:
 			currentToken.code = MNID_T;
 			scData.scanHistogram[currentToken.code]++;
 			isID = TRUE;
@@ -572,7 +606,6 @@ Token funcID(string lexeme) {
 	return currentToken;
 }
 
-
 /*
 ************************************************************
  * Acceptance State Function SL
@@ -583,16 +616,15 @@ Token funcID(string lexeme) {
  *   separate the lexemes. Remember also to incremente the line.
  ***********************************************************
  */
-/* TO_DO: Adjust the function for SL */
 
 Token funcSL(string lexeme) {
 	Token currentToken = { 0 };
 	integer i = 0, len = (integer)strlen(lexeme);
-	currentToken.attribute.contentString = readerGetPosWrte(stringLiteralTable);
+	currentToken.attribute.contentString = readerGetPosWrte(stringLiteralBuffer);
 	for (i = 1; i < len - 1; i++) {
 		if (lexeme[i] == NWL_CHR)
 			line++;
-		if (!readerAddChar(stringLiteralTable, lexeme[i])) {
+		if (!readerAddChar(stringLiteralBuffer, lexeme[i])) {
 			currentToken.code = RTE_T;
 			scData.scanHistogram[currentToken.code]++;
 			strcpy(currentToken.attribute.errLexeme, "Run Time Error:");
@@ -600,7 +632,7 @@ Token funcSL(string lexeme) {
 			return currentToken;
 		}
 	}
-	if (!readerAddChar(stringLiteralTable, EOS_CHR)) {
+	if (!readerAddChar(stringLiteralBuffer, EOS_CHR)) {
 		currentToken.code = RTE_T;
 		scData.scanHistogram[currentToken.code]++;
 		strcpy(currentToken.attribute.errLexeme, "Run Time Error:");
@@ -612,14 +644,12 @@ Token funcSL(string lexeme) {
 	return currentToken;
 }
 
-
 /*
 ************************************************************
  * This function checks if one specific lexeme is a keyword.
  * - Tip: Remember to use the keywordTable to check the keywords.
  ***********************************************************
  */
- /* TO_DO: Adjust the function for Keywords */
 
 Token funcKEY(string lexeme) {
 	Token currentToken = { 0 };
@@ -640,7 +670,6 @@ Token funcKEY(string lexeme) {
 	return currentToken;
 }
 
-
 /*
 ************************************************************
  * Acceptance State Function Error
@@ -651,7 +680,6 @@ Token funcKEY(string lexeme) {
  *   so remember to increment line.
  ***********************************************************
  */
- /* TO_DO: Adjust the function for Errors */
 
 Token funcErr(string lexeme) {
 	Token currentToken = { 0 };
@@ -674,6 +702,35 @@ Token funcErr(string lexeme) {
 
 
 /*
+************************************************************
+ * This function checks if one specific lexeme is a div operator (/) or div_assign operator (/=).
+ * - Tip: Remember to use the keywordTable to check the keywords.
+ ***********************************************************
+ */
+
+Token funcDIVOP(string lexeme) {
+	removeWhitespace(lexeme);
+	Token currentToken = { 0 };
+
+	// Check if the lexeme is a division assignment operator ("/=")
+	if (strcmp(lexeme, "/=") == 0) {
+		currentToken.code = DIV_ASGN_T;
+		scData.scanHistogram[currentToken.code]++;
+	}
+	// Otherwise, it's just a division operator ("/")
+	else if (strcmp(lexeme, "/") == 0) {
+		currentToken.code = DIV_T;
+		scData.scanHistogram[currentToken.code]++;
+	}
+	else {
+		// If the lexeme doesn't match either, it could be an error or an unsupported operator
+		currentToken = funcErr(lexeme);  // Handle as error token
+	}
+
+	return currentToken;
+}
+
+/*
  ************************************************************
  * The function prints the token returned by the scanner
  ***********************************************************
@@ -682,27 +739,21 @@ Token funcErr(string lexeme) {
 void printToken(Token t) {
 	extern string keywordTable[]; /* link to keyword table in */
 	switch (t.code) {
-	case RTE_T:
-		printf("RTE_T\t\t%s", t.attribute.errLexeme);
-		/* Call here run-time error handling component */
-		if (errorNumber) {
-			printf("%d", errorNumber);
-			exit(errorNumber);
-		}
-		printf("\n");
-		break;
 	case ERR_T:
 		printf("ERR_T\t\t%s\n", t.attribute.errLexeme);
-		break;
-	case SEOF_T:
-		printf("SEOF_T\t\t%d\t\n", t.attribute.seofType);
 		break;
 	case MNID_T:
 		printf("MNID_T\t\t%s\n", t.attribute.idLexeme);
 		break;
+	case VID_T:
+		printf("VID_T\t\t%s\n", t.attribute.idLexeme);
+		break;
+	case INL_T:
+		printf("INL_T\t\t%d\n", t.attribute.intValue);  // Assuming intValue holds the integer value
+		break;
 	case STR_T:
-		printf("STR_T\t\t%d\t ", (integer)t.attribute.codeType);
-		printf("%s\n", readerGetContent(stringLiteralTable, (integer)t.attribute.codeType));
+		printf("STR_T\t\t%d\t", (integer)t.attribute.codeType);
+		printf("%s\n", readerGetContent(stringLiteralBuffer, (integer)t.attribute.codeType));
 		break;
 	case LPR_T:
 		printf("LPR_T\n");
@@ -719,11 +770,121 @@ void printToken(Token t) {
 	case KW_T:
 		printf("KW_T\t\t%s\n", keywordTable[t.attribute.codeType]);
 		break;
+	case EOS_T:
+		printf("EOS_T\n");
+		break;
+	case RTE_T:
+		printf("RTE_T\t\t%s", t.attribute.errLexeme);
+		if (errorNumber) {
+			printf("%d", errorNumber);
+			exit(errorNumber);
+		}
+		printf("\n");
+		break;
+	case SEOF_T:
+		printf("SEOF_T\t\t%d\n", t.attribute.seofType);
+		break;
 	case CMT_T:
 		printf("CMT_T\n");
 		break;
-	case EOS_T:
-		printf("EOS_T\n");
+	case ASGN_T:
+		printf("ASGN_T\n");
+		break;
+	case ADD_T:
+		printf("ADD_T\n");
+		break;
+	case SUB_T:
+		printf("SUB_T\n");
+		break;
+	case MUL_T:
+		printf("MUL_T\n");
+		break;
+	case DIV_T:
+		printf("DIV_T\n");
+		break;
+	case MOD_T:
+		printf("MOD_T\n");
+		break;
+	case EQ_T:
+		printf("EQ_T\n");
+		break;
+	case NE_T:
+		printf("NE_T\n");
+		break;
+	case GT_T:
+		printf("GT_T\n");
+		break;
+	case LT_T:
+		printf("LT_T\n");
+		break;
+	case STRICT_EQ_T:
+		printf("STRICT_EQ_T\n");
+		break;
+	case STRICT_NE_T:
+		printf("STRICT_NE_T\n");
+		break;
+	case AND_T:
+		printf("AND_T\n");
+		break;
+	case OR_T:
+		printf("OR_T\n");
+		break;
+	case NOT_T:
+		printf("NOT_T\n");
+		break;
+	case ADD_ASGN_T:
+		printf("ADD_ASGN_T\n");
+		break;
+	case SUB_ASGN_T:
+		printf("SUB_ASGN_T\n");
+		break;
+	case MUL_ASGN_T:
+		printf("MUL_ASGN_T\n");
+		break;
+	case DIV_ASGN_T:
+		printf("DIV_ASGN_T\n");
+		break;
+	case BIT_AND_T:
+		printf("BIT_AND_T\n");
+		break;
+	case BIT_OR_T:
+		printf("BIT_OR_T\n");
+		break;
+	case BIT_XOR_T:
+		printf("BIT_XOR_T\n");
+		break;
+	case BIT_NOT_T:
+		printf("BIT_NOT_T\n");
+		break;
+	case LSHIFT_T:
+		printf("LSHIFT_T\n");
+		break;
+	case RSHIFT_T:
+		printf("RSHIFT_T\n");
+		break;
+	case URSHIFT_T:
+		printf("URSHIFT_T\n");
+		break;
+	case COMMA_T:
+		printf("COMMA_T\n");
+		break;
+	case COLON_T:
+		printf("COLON_T\n");
+		break;
+	case DOT_T:
+		printf("DOT_T\n");
+		break;
+	case LBRACKET_T:
+		printf("LBRACKET_T\n");
+		break;
+	case RBRACKET_T:
+		printf("RBRACKET_T\n");
+		break;
+	case TEMPLATE_START_T:
+		printf("TEMPLATE_START_T\n");
+		break;
+	case TEMPLATE_END_T:
+		printf("TEMPLATE_END_T\n");
 		break;
 	default:
 		printf("Scanner error: invalid token code: %d\n", t.code);
@@ -750,7 +911,3 @@ void printScannerData(ScannerData scData) {
 	}
 	printf("----------------------------------\n");
 }
-
-/*
-TO_DO: (If necessary): HERE YOU WRITE YOUR ADDITIONAL FUNCTIONS (IF ANY).
-*/
