@@ -2,7 +2,7 @@
 ************************************************************
 * COMPILERS COURSE - Algonquin College
 * Code version: Fall, 2024
-* Author: TO_DO
+* Author: Vi Tuan Ha, Corey Lambert
 * Professors: Paulo Sousa
 ************************************************************
 #
@@ -23,7 +23,7 @@
 # ECHO "    @@     @ @@   /@/   @@@ @      @@    ”
 # ECHO "    @@     @@@@@@@@@@@@@@@         @@    ”
 # ECHO "    @@                             @@    ”
-# ECHO "    @@         S O F I A           @@    ”
+# ECHO "    @@           S J S             @@    ”
 # ECHO "    @@                             @@    ”
 # ECHO "    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@    ”
 # ECHO "                                         "
@@ -43,8 +43,6 @@
 ************************************************************
 */
 
-/* TO_DO: Adjust the function header */
-
  /* The #define _CRT_SECURE_NO_WARNINGS should be used in MS Visual Studio projects
   * to suppress the warnings about using "unsafe" functions like fopen()
   * and standard sting library functions defined in string.h.
@@ -63,7 +61,6 @@
 #include <assert.h>  /* assert() prototype */
 
 /* project header files */
-
 #ifndef COMPILERS_H_
 #include "Compilers.h"
 #endif
@@ -78,21 +75,21 @@
 
 /*
 ----------------------------------------------------------------
-TO_DO: Global vars definitions
+Global vars definitions
 ----------------------------------------------------------------
 */
 
 /* Global objects - variables */
 /* This buffer is used as a repository for string literals. */
 extern BufferPointer stringLiteralTable;	/* String literal table */
-simpleJS_intg line;								/* Current line number of the source code */
-extern simpleJS_intg errorNumber;				/* Defined in platy_st.c - run-time error number */
+integer line;								/* Current line number of the source code */
+extern integer errorNumber;					/* Defined in platy_st.c - run-time error number */
 
-extern simpleJS_intg stateType[NUM_STATES];
-extern simpleJS_string keywordTable[KWT_SIZE];
+extern integer stateType[NUM_STATES];
+extern string keywordTable[KWT_SIZE];
 
 extern PTR_ACCFUN finalStateTable[NUM_STATES];
-extern simpleJS_intg transitionTable[NUM_STATES][CHAR_CLASSES];
+extern integer transitionTable[NUM_STATES][CHAR_CLASSES];
 
 /* Local(file) global objects - variables */
 static BufferPointer lexemeBuffer;			/* Pointer to temporary lexeme buffer */
@@ -104,11 +101,9 @@ static BufferPointer sourceBuffer;			/* Pointer to input source buffer */
  *		This function initializes the scanner using defensive programming.
  ***********************************************************
  */
- /* TO_DO: Follow the standard and adjust datatypes */
 
-simpleJS_intg startScanner(BufferPointer psc_buf) {
-	/* TO_DO: Start histogram */
-	for (simpleJS_intg i=0; i<NUM_TOKENS;i++)
+integer startScanner(BufferPointer psc_buf) {
+	for (integer i=0; i<NUM_TOKENS;i++)
 		scData.scanHistogram[i] = 0;
 	/* Basic scanner initialization */
 	/* in case the buffer has been read previously  */
@@ -130,33 +125,37 @@ simpleJS_intg startScanner(BufferPointer psc_buf) {
  ***********************************************************
  */
 
-Token tokenizer(simpleJS_void) {
+Token tokenizer(void) {
 
-	/* TO_DO: Follow the standard and adjust datatypes */
+	Token currentToken = { 0 };				/* token to return after pattern recognition. Set all structure members to 0 */
+	character c;							/* input symbol */
+	integer state = 0;						/* initial state of the FSM */
+	integer lexStart;						/* start offset of a lexeme in the input char buffer (array) */
+	integer lexEnd;							/* end offset of a lexeme in the input char buffer (array)*/
 
-	Token currentToken = { 0 }; /* token to return after pattern recognition. Set all structure members to 0 */
-	simpleJS_char c;			/* input symbol */
-	simpleJS_intg state = 0;	/* initial state of the FSM */
-	simpleJS_intg lexStart;	/* start offset of a lexeme in the input char buffer (array) */
-	simpleJS_intg lexEnd;		/* end offset of a lexeme in the input char buffer (array)*/
+	integer lexLength;						/* token length */
+	integer i;								/* counter */
+	//character newc;						// new char
 
-	simpleJS_intg lexLength;	/* token length */
-	simpleJS_intg i;			/* counter */
-	///simpleJS_char newc;		// new char
+	static boolean isTemplateStart = TRUE;  // Initialize it to TRUE for the first backtick (`) seen
 
 	/* Starting lexeme */
-	simpleJS_string lexeme;	/* lexeme (to check the function) */
-	lexeme = (simpleJS_string)malloc(VID_LEN * sizeof(simpleJS_char));
+	string lexeme;							/* lexeme (to check the function) */
+	lexeme = (string)malloc(VID_LEN * sizeof(character));
 	if (!lexeme)
 		return currentToken;
 	lexeme[0] = EOS_CHR;
 
-	while (1) { /* endless loop broken by token returns it will generate a warning */
+	while (1) {								/* endless loop broken by token returns it will generate a warning */
 		c = readerGetChar(sourceBuffer);
 
-		// TO_DO: Defensive programming
-		if (c < 0 || c >= NCHAR)
+		if (c < 0 || c >= NCHAR) {
+			/* Set an error token indicating invalid character */
+			currentToken.code = ERR_T;						// Set to your defined error token type
+			currentToken.attribute.errLexeme[0] = c;		// Store the problematic character (if useful)
+			currentToken.attribute.errLexeme[1] = EOS_CHR;  // Ensure the string is null-terminated
 			return currentToken;
+		}
 
 		/* ------------------------------------------------------------------------
 			Part 1: Implementation of token driven scanner.
@@ -164,47 +163,180 @@ Token tokenizer(simpleJS_void) {
 			-----------------------------------------------------------------------
 		*/
 
-		/* TO_DO: All patterns that do not require accepting functions */
 		switch (c) {
-
-		/* Cases for spaces */
+		
+		/* White Space and Newline */
 		case SPC_CHR:
 		case TAB_CHR:
+			/* Ignore and continue to the next character */
 			break;
+
 		case NWL_CHR:
 			line++;
 			break;
 
-		/* Cases for symbols */
-		case SCL_CHR:
+		/* Basic Symbols */
+		case SCL_CHR:	// ;
 			currentToken.code = EOS_T;
-			scData.scanHistogram[currentToken.code]++;
-			return currentToken;
-		case LPR_CHR:
+			break;
+		case LPR_CHR:  // (
 			currentToken.code = LPR_T;
-			scData.scanHistogram[currentToken.code]++;
-			return currentToken;
-		case RPR_CHR:
+			break;
+		case RPR_CHR:  // )
 			currentToken.code = RPR_T;
-			scData.scanHistogram[currentToken.code]++;
-			return currentToken;
-		case LBR_CHR:
+			break;
+		case LBR_CHR:  // {
 			currentToken.code = LBR_T;
-			scData.scanHistogram[currentToken.code]++;
-			return currentToken;
-		case RBR_CHR:
+			break;
+		case RBR_CHR:  // }
 			currentToken.code = RBR_T;
-			scData.scanHistogram[currentToken.code]++;
-			return currentToken;
-		/* Cases for END OF FILE */
-		case EOS_CHR:
+			break;
+
+		/* Assignment and Comparison Operators */
+		case EQ_CHR:  // =
+			c = readerGetChar(sourceBuffer);
+			if (c == EQ_CHR) {              // ==
+				currentToken.code = EQ_T;
+				c = readerGetChar(sourceBuffer);
+				if (c == EQ_CHR)            // ===
+					currentToken.code = STRICT_EQ_T;
+				else
+					readerRetract(sourceBuffer);   // retract for ==
+			}
+			else {
+				currentToken.code = ASNG_T;  // =
+				readerRetract(sourceBuffer);
+			}
+			break;
+
+		/* Arithmetic Operators */
+		case ADD_CHR:  // +
+			c = readerGetChar(sourceBuffer);
+			if (c == EQ_CHR)
+				currentToken.code = ADD_ASNG_T;  // +=
+			else {
+				currentToken.code = ADD_T;       // +
+				readereRetract(sourceBuffer);
+			}
+			break;
+
+		case MIN_CHR:  // -
+			c = readerGetChar(sourceBuffer);
+			if (c == EQ_CHR)
+				currentToken.code = SUB_ASNG_T;  // -=
+			else {
+				currentToken.code = SUB_T;       // -
+				readerRetract(sourceBuffer);
+			}
+			break;
+
+		case MUL_CHR:  // *
+			c = readerGetChar(sourceBuffer);
+			if (c == EQ_CHR)
+				currentToken.code = MUL_ASNG_T;  // *=
+			else {
+				currentToken.code = MUL_T;       // *
+				readerRetract(sourceBuffer);
+			}
+			break;
+
+		/* Modulo Operator */
+		case PERC_CHR:  // %
+			currentToken.code = MOD_T;
+			break;
+
+		/* Comparison Operators */
+		case LT_CHR:  // <
+			c = readerGetChar(sourceBuffer);
+			if (c == LT_CHR)
+				currentToken.code = LSHIFT_T;    // <<
+			else {
+				currentToken.code = LT_T;        // <
+				readerRetract(sourceBuffer);
+			}
+			break;
+
+		case GT_CHR:  // >
+			c = readerGetChar(sourceBuffer);
+			if (c == GT_CHR) {
+				c = readerGetChar(sourceBuffer);
+				if (c == GT_CHR)
+					currentToken.code = URSHIFT_T; // >>>
+				else {
+					currentToken.code = RSHIFT_T;  // >>
+					readerRetract(sourceBuffer);
+				}
+			}
+			else {
+				currentToken.code = GT_T;         // >
+				readerRetract(sourceBuffer);
+			}
+			break;
+
+		/* Logical and Bitwise Operators */
+		case AMP_CHR:  // &
+			c = readerGetChar(sourceBuffer);
+			if (c == AMP_CHR)
+				currentToken.code = AND_T;       // &&
+			else {
+				currentToken.code = BIT_AND_T;   // &
+				readerRetract(sourceBuffer);
+			}
+			break;
+
+		case PIPE_CHR:  // |
+			c = readerGetChar(sourceBuffer);
+			if (c == PIPE_CHR)
+				currentToken.code = OR_T;        // ||
+			else {
+				currentToken.code = BIT_OR_T;    // |
+				readerRetract(sourceBuffer);
+			}
+			break;
+
+		/* Bitwise Operators */
+		case CARET_CHR:  // ^
+			currentToken.code = BIT_XOR_T;
+			break;
+		case TILDE_CHR:  // ~
+			currentToken.code = BIT_NOT_T;
+			break;
+
+		/* Additional Delimiters */
+		case COM_CHR:  // ,
+			currentToken.code = COMMA_T;
+			break;
+		case COL_CHR:  // :
+			currentToken.code = COLON_T;
+			break;
+		case DOT_CHR:  // .
+			currentToken.code = DOT_T;
+			break;
+
+		/* Brackets */
+		case LBRK_CHR:  // [
+			currentToken.code = LBRACKET_T;
+			break;
+		case RBRK_CHR:  // ]
+			currentToken.code = RBRACKET_T;
+			break;
+
+		/* Template Literal Tokens */
+		case BCKT_CHR:  // `
+			if (isTemplateStart)
+				currentToken.code = TEMPLATE_START_T;
+			else
+				currentToken.code = TEMPLATE_END_T;
+			isTemplateStart = !isTemplateStart;  // toggle for template literals
+			break;
+
+		/* End of File or String */
+		case EOS_CHR:  // \0
 			currentToken.code = SEOF_T;
-			scData.scanHistogram[currentToken.code]++;
 			currentToken.attribute.seofType = SEOF_0;
 			return currentToken;
-		case EOF_CHR:
+		case EOF_CHR:  // 0xFF
 			currentToken.code = SEOF_T;
-			scData.scanHistogram[currentToken.code]++;
 			currentToken.attribute.seofType = SEOF_255;
 			return currentToken;
 
@@ -214,7 +346,7 @@ Token tokenizer(simpleJS_void) {
 			-----------------------------------------------------------------------
 		*/
 
-		/* TO_DO: Adjust / check the logic for your language */
+		/*  Adjust / check the logic for your language */
 
 		default: // general case
 			state = nextState(state, c);
@@ -230,7 +362,7 @@ Token tokenizer(simpleJS_void) {
 				readerRetract(sourceBuffer);
 			lexEnd = readerGetPosRead(sourceBuffer);
 			lexLength = lexEnd - lexStart;
-			lexemeBuffer = readerCreate((simpleJS_intg)lexLength + 2, 0, MODE_FIXED);
+			lexemeBuffer = readerCreate((integer)lexLength + 2, 0, MODE_FIXED);
 			if (!lexemeBuffer) {
 				fprintf(stderr, "Scanner error: Can not create buffer\n");
 				exit(1);
@@ -240,9 +372,11 @@ Token tokenizer(simpleJS_void) {
 				readerAddChar(lexemeBuffer, readerGetChar(sourceBuffer));
 			readerAddChar(lexemeBuffer, READER_TERMINATOR);
 			lexeme = readerGetContent(lexemeBuffer, 0);
-			// TO_DO: Defensive programming
-			if (!lexeme)
+			// Defensive programming
+			if (!lexeme) {
+				readerFree(lexemeBuffer);
 				return currentToken;
+			}
 			currentToken = (*finalStateTable[state])(lexeme);
 			readerRestore(lexemeBuffer);
 			return currentToken;
@@ -277,11 +411,10 @@ Token tokenizer(simpleJS_void) {
 	or #undef DEBUG is used - see the top of the file.
  ***********************************************************
  */
- /* TO_DO: Just change the datatypes */
 
-simpleJS_intg nextState(simpleJS_intg state, simpleJS_char c) {
-	simpleJS_intg col;
-	simpleJS_intg next;
+integer nextState(integer state, character c) {
+	integer col;
+	integer next;
 	col = nextClass(c);
 	next = transitionTable[state][col];
 	if (DEBUG)
@@ -304,39 +437,47 @@ simpleJS_intg nextState(simpleJS_intg state, simpleJS_char c) {
 	* For instance, a letter should return the column for letters, etc.
  ***********************************************************
  */
-/* TO_DO: Use your column configuration */
 
-/* Adjust the logic to return next column in TT */
-/*    [A-z],[0-9],    _,    &,   \', SEOF,    #, other
-	   L(0), D(1), U(2), M(3), Q(4), E(5), C(6),  O(7) */
+ /*   /,  \n,   *,    _,   L,   =,    (,    D,    ",   ',    O    */
+ /*    0,   1,   2,    3,   4,   5,    6,    7,    8,    9,   10 */
+integer nextClass(character c) {
+	integer val = ESNR;  // Default to an error/invalid class
 
-simpleJS_intg nextClass(simpleJS_char c) {
-	simpleJS_intg val = -1;
 	switch (c) {
-	case UND_CHR:
-		val = 2;
+	case SLH_CHR:  // "/"
+		val = 0;  // Slash for comments
 		break;
-	case AMP_CHR:
-		val = 3;
+	case NWL_CHR:  // "\n"
+		val = 1;  // Newline character
 		break;
-	case QUT_CHR:
-		val = 4;
+	case MUL_CHR:  // "*"
+		val = 2;  // Asterisk for block comments
 		break;
-	case HST_CHR:
-		val = 6;
+	case UND_CHR:  // "_"
+		val = 3;  // Underscore (used for identifiers)
 		break;
-	case EOS_CHR:
-	case EOF_CHR:
-		val = 5;
+	case EQ_CHR:  // "="
+		val = 5;  // Equals sign (assignment operator)
+		break;
+	case LPR_CHR:  // "("
+		val = 6;  // Left Parenthesis (used for function calls or expressions)
+		break;
+	case DBL_QT_CHR:  // "\""
+		val = 8;  // Double quote (start of string literal)
+		break;
+	case SGL_QT_CHR:  // "'"
+		val = 9;  // Single quote (start of character literal)
 		break;
 	default:
-		if (isalpha(c))
-			val = 0;
-		else if (isdigit(c))
-			val = 1;
+		if (isalpha(c))  // Letter (A-Z or a-z)
+			val = 4;  // Alphabet (used in identifiers or keywords)
+		else if (isdigit(c))  // Digit (0-9)
+			val = 7;  // Digit (used for integer literals)
 		else
-			val = 7;
+			val = 10;  // Other characters (operators, punctuation, etc.)
+		break;
 	}
+
 	return val;
 }
 
@@ -348,9 +489,9 @@ simpleJS_intg nextClass(simpleJS_char c) {
  */
  /* TO_DO: Adjust the function for IL */
 
-Token funcCMT(simpleJS_string lexeme) {
+Token funcCMT(string lexeme) {
 	Token currentToken = { 0 };
-	simpleJS_intg i = 0, len = (simpleJS_intg)strlen(lexeme);
+	integer i = 0, len = (integer)strlen(lexeme);
 	currentToken.attribute.contentString = readerGetPosWrte(stringLiteralTable);
 	for (i = 1; i < len - 1; i++) {
 		if (lexeme[i] == NWL_CHR)
@@ -374,9 +515,9 @@ Token funcCMT(simpleJS_string lexeme) {
   */
   /* TO_DO: Adjust the function for IL */
 
-Token funcIL(simpleJS_string lexeme) {
+Token funcIL(string lexeme) {
 	Token currentToken = { 0 };
-	simpleJS_long tlong;
+	long tlong;
 	if (lexeme[0] != EOS_CHR && strlen(lexeme) > NUM_LEN) {
 		currentToken = (*finalStateTable[ESNR])(lexeme);
 	}
@@ -385,7 +526,7 @@ Token funcIL(simpleJS_string lexeme) {
 		if (tlong >= 0 && tlong <= SHRT_MAX) {
 			currentToken.code = INL_T;
 			scData.scanHistogram[currentToken.code]++;
-			currentToken.attribute.intValue = (simpleJS_intg)tlong;
+			currentToken.attribute.intValue = (integer)tlong;
 		}
 		else {
 			currentToken = (*finalStateTable[ESNR])(lexeme);
@@ -409,16 +550,16 @@ Token funcIL(simpleJS_string lexeme) {
  */
  /* TO_DO: Adjust the function for ID */
 
-Token funcID(simpleJS_string lexeme) {
+Token funcID(string lexeme) {
 	Token currentToken = { 0 };
 	size_t length = strlen(lexeme);
-	simpleJS_char lastch = lexeme[length - 1];
-	simpleJS_intg isID = simpleJS_FALSE;
+	character lastch = lexeme[length - 1];
+	integer isID = FALSE;
 	switch (lastch) {
 		case AMP_CHR:
 			currentToken.code = MNID_T;
 			scData.scanHistogram[currentToken.code]++;
-			isID = simpleJS_TRUE;
+			isID = TRUE;
 			break;
 		default:
 			// Test Keyword
@@ -426,7 +567,7 @@ Token funcID(simpleJS_string lexeme) {
 			currentToken = funcKEY(lexeme);
 			break;
 	}
-	if (isID == simpleJS_TRUE) {
+	if (isID == TRUE) {
 		strncpy(currentToken.attribute.idLexeme, lexeme, VID_LEN);
 		currentToken.attribute.idLexeme[VID_LEN] = EOS_CHR;
 	}
@@ -446,9 +587,9 @@ Token funcID(simpleJS_string lexeme) {
  */
 /* TO_DO: Adjust the function for SL */
 
-Token funcSL(simpleJS_string lexeme) {
+Token funcSL(string lexeme) {
 	Token currentToken = { 0 };
-	simpleJS_intg i = 0, len = (simpleJS_intg)strlen(lexeme);
+	integer i = 0, len = (integer)strlen(lexeme);
 	currentToken.attribute.contentString = readerGetPosWrte(stringLiteralTable);
 	for (i = 1; i < len - 1; i++) {
 		if (lexeme[i] == NWL_CHR)
@@ -482,10 +623,10 @@ Token funcSL(simpleJS_string lexeme) {
  */
  /* TO_DO: Adjust the function for Keywords */
 
-Token funcKEY(simpleJS_string lexeme) {
+Token funcKEY(string lexeme) {
 	Token currentToken = { 0 };
-	simpleJS_intg kwindex = -1, j = 0;
-	simpleJS_intg len = (simpleJS_intg)strlen(lexeme);
+	integer kwindex = -1, j = 0;
+	integer len = (integer)strlen(lexeme);
 	///lexeme[len - 1] = EOS_CHR;
 	for (j = 0; j < KWT_SIZE; j++)
 		if (!strcmp(lexeme, &keywordTable[j][0]))
@@ -514,9 +655,9 @@ Token funcKEY(simpleJS_string lexeme) {
  */
  /* TO_DO: Adjust the function for Errors */
 
-Token funcErr(simpleJS_string lexeme) {
+Token funcErr(string lexeme) {
 	Token currentToken = { 0 };
-	simpleJS_intg i = 0, len = (simpleJS_intg)strlen(lexeme);
+	integer i = 0, len = (integer)strlen(lexeme);
 	if (len > ERR_LEN) {
 		strncpy(currentToken.attribute.errLexeme, lexeme, ERR_LEN - 3);
 		currentToken.attribute.errLexeme[ERR_LEN - 3] = EOS_CHR;
@@ -540,8 +681,8 @@ Token funcErr(simpleJS_string lexeme) {
  ***********************************************************
  */
 
-simpleJS_void printToken(Token t) {
-	extern simpleJS_string keywordTable[]; /* link to keyword table in */
+void printToken(Token t) {
+	extern string keywordTable[]; /* link to keyword table in */
 	switch (t.code) {
 	case RTE_T:
 		printf("RTE_T\t\t%s", t.attribute.errLexeme);
@@ -562,8 +703,8 @@ simpleJS_void printToken(Token t) {
 		printf("MNID_T\t\t%s\n", t.attribute.idLexeme);
 		break;
 	case STR_T:
-		printf("STR_T\t\t%d\t ", (simpleJS_intg)t.attribute.codeType);
-		printf("%s\n", readerGetContent(stringLiteralTable, (simpleJS_intg)t.attribute.codeType));
+		printf("STR_T\t\t%d\t ", (integer)t.attribute.codeType);
+		printf("%s\n", readerGetContent(stringLiteralTable, (integer)t.attribute.codeType));
 		break;
 	case LPR_T:
 		printf("LPR_T\n");
@@ -600,7 +741,7 @@ simpleJS_void printToken(Token t) {
  *	- Void (procedure)
  ***********************************************************
  */
-simpleJS_void printScannerData(ScannerData scData) {
+void printScannerData(ScannerData scData) {
 	/* Print Scanner statistics */
 	printf("Statistics:\n");
 	printf("----------------------------------\n");
