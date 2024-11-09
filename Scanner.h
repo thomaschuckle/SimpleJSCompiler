@@ -68,153 +68,156 @@
 
 #define RTE_CODE 1  /* Value for run-time error */
 
-#define NUM_TOKENS 46
+#define NUM_TOKENS 47
 
 enum TOKENS {
 	/* Basic Tokens */
 	ERR_T,           /*  0: Error token */
-	MNID_T,          /*  1: NOT USED (Method name identifier token (start: &)) */
-	INL_T,           /*  2: Integer literal token */
-	STR_T,           /*  3: String literal token */
-	LPR_T,           /*  4: Left parenthesis token */
-	RPR_T,           /*  5: Right parenthesis token */
-	LBR_T,           /*  6: Left brace token */
-	RBR_T,           /*  7: Right brace token */
+	MNID_T,          /*  1: Method name identifier token */
+	VID_T,           /*  2: Variable identifier token */
+	INL_T,           /*  3: Integer literal token */
+	STR_T,           /*  4: String literal token */
+	LPR_T,           /*  5: Left parenthesis token */
+	RPR_T,           /*  6: Right parenthesis token */
+	LBR_T,           /*  7: Left brace token */
+	RBR_T,           /*  8: Right brace token */
 
-	KW_T,            /*  8: Keyword token */
+	KW_T,            /*  9: Keyword token */
 
-	EOS_T,           /*  9: End of statement (semicolon) */
-	RTE_T,           /* 10: Run-time error token */
-	SEOF_T,          /* 11: Source end-of-file token */
-	CMT_T,           /* 12: Comment token */
+	EOS_T,           /* 10: End of statement (semicolon) */
+	RTE_T,           /* 11: Run-time error token */
+	SEOF_T,          /* 12: Source end-of-file token */
+	CMT_T,           /* 13: Comment token */
 
 	/* Arithmetic Operators */
-	ASNG_T,          /* 13: Assignment operator token (=) */
-	ADD_T,           /* 14: Addition operator token (+) */
-	SUB_T,           /* 15: Subtraction operator token (-) */
-	MUL_T,           /* 16: Multiplication operator token (*) */
-	DIV_T,           /* 17: Division operator token (/) */
-	MOD_T,           /* 18: Modulo operator token (%) */
+	ASGN_T,          /* 14: Assignment operator token (=) */
+	ADD_T,           /* 15: Addition operator token (+) */
+	SUB_T,           /* 16: Subtraction operator token (-) */
+	MUL_T,           /* 17: Multiplication operator token (*) */
+	DIV_T,           /* 18: Division operator token (/) */
+	MOD_T,           /* 19: Modulo operator token (%) */
 
 	/* Comparison Operators */
-	EQ_T,            /* 19: Equality operator token (==) */
-	NE_T,            /* 20: Not equal operator token (!=) */
-	GT_T,            /* 21: Greater than operator token (>) */
-	LT_T,            /* 22: Less than operator token (<) */
-	STRICT_EQ_T,     /* 23: Strict equality operator token (===) */
-	STRICT_NE_T,     /* 24: Strict not equal operator token (!==) */
+	EQ_T,            /* 20: Equality operator token (==) */
+	NE_T,            /* 21: Not equal operator token (!=) */
+	GT_T,            /* 22: Greater than operator token (>) */
+	LT_T,            /* 23: Less than operator token (<) */
+	STRICT_EQ_T,     /* 24: Strict equality operator token (===) */
+	STRICT_NE_T,     /* 25: Strict not equal operator token (!==) */
 
 	/* Logical Operators */
-	AND_T,           /* 25: Logical AND operator token (&&) */
-	OR_T,            /* 26: Logical OR operator token (||) */
-	NOT_T,           /* 27: Logical NOT operator token (!) */
+	AND_T,           /* 26: Logical AND operator token (&&) */
+	OR_T,            /* 27: Logical OR operator token (||) */
+	NOT_T,           /* 28: Logical NOT operator token (!) */
 
 	/* Compound Assignment Operators */
-	ADD_ASNG_T,      /* 28: Addition assignment operator token (+=) */
-	SUB_ASNG_T,      /* 29: Subtraction assignment operator token (-=) */
-	MUL_ASNG_T,      /* 30: Multiplication assignment operator token (*=) */
-	DIV_ASNG_T,      /* 31: Division assignment operator token (/=) */
+	ADD_ASGN_T,      /* 29: Addition assignment operator token (+=) */
+	SUB_ASGN_T,      /* 30: Subtraction assignment operator token (-=) */
+	MUL_ASGN_T,      /* 31: Multiplication assignment operator token (*=) */
+	DIV_ASGN_T,      /* 32: Division assignment operator token (/=) */
 
 	/* Bitwise Operators */
-	BIT_AND_T,       /* 32: Bitwise AND operator token (&) */
-	BIT_OR_T,        /* 33: Bitwise OR operator token (|) */
-	BIT_XOR_T,       /* 34: Bitwise XOR operator token (^) */
-	BIT_NOT_T,       /* 35: Bitwise NOT operator token (~) */
-	LSHIFT_T,        /* 36: Left shift operator token (<<) */
-	RSHIFT_T,        /* 37: Right shift operator token (>>) */
-	URSHIFT_T,       /* 38: Unsigned right shift operator token (>>>) */
+	BIT_AND_T,       /* 33: Bitwise AND operator token (&) */
+	BIT_OR_T,        /* 34: Bitwise OR operator token (|) */
+	BIT_XOR_T,       /* 35: Bitwise XOR operator token (^) */
+	BIT_NOT_T,       /* 36: Bitwise NOT operator token (~) */
+	LSHIFT_T,        /* 37: Left shift operator token (<<) */
+	RSHIFT_T,        /* 38: Right shift operator token (>>) */
+	URSHIFT_T,       /* 39: Unsigned right shift operator token (>>>) */
 
 	/* Additional Delimiters */
-	COMMA_T,         /* 39: Comma delimiter token (,) */
-	COLON_T,         /* 40: Colon delimiter token (:) */
-	DOT_T,           /* 41: Dot operator token (.) */
+	COMMA_T,         /* 40: Comma delimiter token (,) */
+	COLON_T,         /* 41: Colon delimiter token (:) */
+	DOT_T,           /* 42: Dot operator token (.) */
 
 	/* Brackets */
-	LBRACKET_T,      /* 42: Left square bracket token ([) */
-	RBRACKET_T,      /* 43: Right square bracket token (]) */
+	LBRACKET_T,      /* 43: Left square bracket token ([) */
+	RBRACKET_T,      /* 44: Right square bracket token (]) */
 
 	/* Template Literal Tokens */
-	TEMPLATE_START_T,/* 44: Template literal start token (`) */
-	TEMPLATE_END_T   /* 45: Template literal end token (`) */
+	TEMPLATE_START_T,/* 45: Template literal start token (`) */
+	TEMPLATE_END_T   /* 46: Template literal end token (`) */
 };
 
 static string tokenStrTable[NUM_TOKENS] = {
 	"ERR_T",           /*  0 */
-	"MNID_T",          /*  1 */			// NOT USED
-	"INL_T",           /*  2 */
-	"STR_T",           /*  3 */
-	"LPR_T",           /*  4 */
-	"RPR_T",           /*  5 */
-	"LBR_T",           /*  6 */
-	"RBR_T",           /*  7 */
-	"KW_T",            /*  8 */
-	"EOS_T",           /*  9 */
-	"RTE_T",           /* 10 */
-	"SEOF_T",          /* 11 */
-	"CMT_T",           /* 12 */
+	"MNID_T",          /*  1 */
+	"VID_T",           /*  2 */
+	"INL_T",           /*  3 */
+	"STR_T",           /*  4 */
+	"LPR_T",           /*  5 */
+	"RPR_T",           /*  6 */
+	"LBR_T",           /*  7 */
+	"RBR_T",           /*  8 */
+	"KW_T",            /*  9 */
+	"EOS_T",           /* 10 */
+	"RTE_T",           /* 11 */
+	"SEOF_T",          /* 12 */
+	"CMT_T",           /* 13 */
 
 	/* Arithmetic Operators */
-	"ASNG_T",          /* 13 */
-	"ADD_T",           /* 14 */
-	"SUB_T",           /* 15 */
-	"MUL_T",           /* 16 */
-	"DIV_T",           /* 17 */
-	"MOD_T",           /* 18 */
+	"ASGN_T",          /* 14 */
+	"ADD_T",           /* 15 */
+	"SUB_T",           /* 16 */
+	"MUL_T",           /* 17 */
+	"DIV_T",           /* 18 */
+	"MOD_T",           /* 19 */
 
 	/* Comparison Operators */
-	"EQ_T",            /* 19 */
-	"NE_T",            /* 20 */
-	"GT_T",            /* 21 */
-	"LT_T",            /* 22 */
-	"STRICT_EQ_T",     /* 23 */
-	"STRICT_NE_T",     /* 24 */
+	"EQ_T",            /* 20 */
+	"NE_T",            /* 21 */
+	"GT_T",            /* 22 */
+	"LT_T",            /* 23 */
+	"STRICT_EQ_T",     /* 24 */
+	"STRICT_NE_T",     /* 25 */
 
 	/* Logical Operators */
-	"AND_T",           /* 25 */
-	"OR_T",            /* 26 */
-	"NOT_T",           /* 27 */
+	"AND_T",           /* 26 */
+	"OR_T",            /* 27 */
+	"NOT_T",           /* 28 */
 
 	/* Compound Assignment Operators */
-	"ADD_ASNG_T",      /* 28 */
-	"SUB_ASNG_T",      /* 29 */
-	"MUL_ASNG_T",      /* 30 */
-	"DIV_ASNG_T",      /* 31 */
+	"ADD_ASGN_T",      /* 29 */
+	"SUB_ASGN_T",      /* 30 */
+	"MUL_ASGN_T",      /* 31 */
+	"DIV_ASGN_T",      /* 32 */
 
 	/* Bitwise Operators */
-	"BIT_AND_T",       /* 32 */
-	"BIT_OR_T",        /* 33 */
-	"BIT_XOR_T",       /* 34 */
-	"BIT_NOT_T",       /* 35 */
-	"LSHIFT_T",        /* 36 */
-	"RSHIFT_T",        /* 37 */
-	"URSHIFT_T",       /* 38 */
+	"BIT_AND_T",       /* 33 */
+	"BIT_OR_T",        /* 34 */
+	"BIT_XOR_T",       /* 35 */
+	"BIT_NOT_T",       /* 36 */
+	"LSHIFT_T",        /* 37 */
+	"RSHIFT_T",        /* 38 */
+	"URSHIFT_T",       /* 39 */
 
 	/* Additional Delimiters */
-	"COMMA_T",         /* 39 */
-	"COLON_T",         /* 40 */
-	"DOT_T",           /* 41 */
+	"COMMA_T",         /* 40 */
+	"COLON_T",         /* 41 */
+	"DOT_T",           /* 42 */
 
 	/* Brackets */
-	"LBRACKET_T",      /* 42 */
-	"RBRACKET_T",      /* 43 */
+	"LBRACKET_T",      /* 43 */
+	"RBRACKET_T",      /* 44 */
 
 	/* Template Literal Tokens */
-	"TEMPLATE_START_T",/* 44 */
-	"TEMPLATE_END_T"   /* 45 */
+	"TEMPLATE_START_T",/* 45 */
+	"TEMPLATE_END_T"   /* 46 */
 };
 
+
 typedef enum ArithmeticOperators {
-	OP_ASNG,        /* Assignment operator (=) */
+	OP_ASGN,        /* Assignment operator (=) */
 	OP_ADD,         /* Addition operator (+) */
 	OP_SUB,         /* Subtraction operator (-) */
 	OP_MUL,         /* Multiplication operator (*) */
 	OP_DIV,         /* Division operator (/) */
 	OP_MOD,         /* Modulo operator (%) */
-	OP_ADD_ASNG,    /* Addition assignment operator (+=) */
-	OP_SUB_ASNG,    /* Subtraction assignment operator (-=) */
-	OP_MUL_ASNG,    /* Multiplication assignment operator (*=) */
-	OP_DIV_ASNG,    /* Division assignment operator (/=) */
-	OP_MOD_ASNG     /* Modulo assignment operator (%=) */
+	OP_ADD_ASGN,    /* Addition assignment operator (+=) */
+	OP_SUB_ASGN,    /* Subtraction assignment operator (-=) */
+	OP_MUL_ASGN,    /* Multiplication assignment operator (*=) */
+	OP_DIV_ASGN,    /* Division assignment operator (/=) */
+	OP_MOD_ASGN     /* Modulo assignment operator (%=) */
 } AriOperator;
 
 typedef enum RelationalOperators {
@@ -237,7 +240,7 @@ typedef union TokenAttribute {
 	EofOperator seofType;				/* source-end-of-file attribute code */
 	integer intValue;					/* integer literal attribute (value) */
 	integer keywordIndex;				/* keyword index in the keyword table */
-	integer contentString;				/* string literal offset from the beginning of the string literal buffer (stringLiteralTable->content) */
+	integer contentString;				/* string literal offset from the beginning of the string literal buffer (stringLiteralBuffer->content) */
 	float floatValue;					/* floating-point literal attribute (value) */
 	character idLexeme[VID_LEN + 1];	/* variable identifier token attribute */
 	character errLexeme[ERR_LEN + 1];	/* error token attribite */
@@ -306,7 +309,7 @@ typedef struct scannerData {
 /* Special case tokens processed individually in the token-driven part of the scanner:
  * LPR_T, RPR_T, LBR_T, RBR_T, LBRACKET_T, RBRACKET_T, COMMA_T, COLON_T, EOS_T, SEOF_T,
  * template literal markers (TEMPLATE_START_T, TEMPLATE_END_T),
- * assignment and comparison operators (ASNG_T, EQ_T, STRICT_EQ_T),
+ * assignment and comparison operators (ASGN_T, EQ_T, STRICT_EQ_T),
  * arithmetic and compound assignment operators (+, +=, -, -=, *, *=, %, /),
  * logical and bitwise operators (&, |, ^, ~, &&, ||),
  * and other special characters such as ` (backtick), & (ampersand), and ' (single quote).
@@ -319,10 +322,10 @@ typedef struct scannerData {
 #define NUM_STATES		21 + 2
 #define CHAR_CLASSES	11
 
-static int transitionTable[NUM_STATES][CHAR_CLASSES] = {
+static integer transitionTable[NUM_STATES][CHAR_CLASSES] = {
 	/*         SL      \n     S       U       L       EQ      P       D       Q       SQ      O    */
 	/*  0 */ {  1,   ESNR,  ESNR,   8,      8,      ESNR,   ESNR,   12,     14,     18,    ESNR },
-	/*  1 */ {  2,   ESNR,  4,      ESNR,   ESNR,   16,     ESNR,   ESNR,   ESNR,   ESNR,  ESNR },
+	/*  1 */ {  2,   ESNR,  4,      ESNR,   ESNR,   16,     ESNR,   20,   ESNR,   ESNR,  ESNR },
 	/*  2 */ {  2,   3,     2,      2,      2,      2,      2,      2,      2,      2,     2    },
 	/*  3 */ {  FS, FS, FS,   FS,   FS,   FS,   FS,   FS,   FS,   FS,  FS },
 	/*  4 */ {  4,    4,     5,      4,      4,      4,      4,      4,      4,      4,     4    },
@@ -377,12 +380,6 @@ static integer stateType[NUM_STATES] = {
 	FSNR, /* 21 (Err1 - no retract) */
 	FSWR  /* 22 (Err2 - retract) */
 };
-
-/*
--------------------------------------------------
-TO_DO: Adjust your functions'definitions
--------------------------------------------------
-*/
 
 /* Static (local) function  prototypes */
 integer			startScanner(BufferPointer psc_buf);
