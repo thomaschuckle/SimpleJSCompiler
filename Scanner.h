@@ -329,9 +329,9 @@ typedef struct scannerData {
 
 #define ESNR	21		/* Error state with no retract */
 #define ESWR	22		/* Error state with retract */
-#define FS		23		/* Illegal state */
+#define FS		26		/* Illegal state */
 
-#define NUM_STATES		21 + 2
+#define NUM_STATES		24 + 2
 #define CHAR_CLASSES	11
 
 static integer transitionTable[NUM_STATES][CHAR_CLASSES] = {
@@ -341,7 +341,7 @@ static integer transitionTable[NUM_STATES][CHAR_CLASSES] = {
 	/*  2 */ {  2,   3,     2,      2,      2,      2,      2,      2,      2,      2,     2    },
 	/*  3 */ {  FS, FS, FS,   FS,   FS,   FS,   FS,   FS,   FS,   FS,  FS },
 	/*  4 */ {  4,    4,     5,      4,      4,      4,      4,      4,      4,      4,     4    },
-	/*  5 */ {  6,    5,     5,      5,      5,      5,      5,      5,      5,      5,     5    },
+	/*  5 */ {  6,    23,     23,     23,     23,     23,     23,     23,     23,      23,     23    },
 	/*  6 */ {  ESNR, 7,     ESNR,   ESNR,   ESNR,   ESNR,   ESNR,   ESNR,   ESNR,   ESNR,  ESNR },
 	/*  7 */ {  FS, FS,  FS,   FS,   FS,   FS,   FS,   FS,   FS,   FS,  FS },
 	/*  8 */ {  11,   11,    11,     8,      8,      9,      10,     8,      11,     11,    11   },
@@ -358,7 +358,10 @@ static integer transitionTable[NUM_STATES][CHAR_CLASSES] = {
 	/* 19 */ {  FS, FS,  FS,   FS,   FS,   FS,   FS,   FS,   FS,   FS,  FS },
 	/* 20 */ {  FS, FS,  FS,   FS,   FS,   FS,   FS,   FS,   FS,   FS,  FS },
 	/* 21 */ {  FS, FS,  FS,   FS,   FS,   FS,   FS,   FS,   FS,   FS,  FS },  // ERROR STATE NO RETRACT (ESNR)
-	/* 22 */ {  FS, FS,  FS,   FS,   FS,   FS,   FS,   FS,   FS,   FS,  FS }   // ERROR STATE WITH RETRACT (ESWR)
+	/* 22 */ {  FS, FS,  FS,   FS,   FS,   FS,   FS,   FS,   FS,   FS,  FS },  // ERROR STATE WITH RETRACT (ESWR)
+	/* 23 */ {  23, 23,  24,   23,   23,   23,   23,   23,   23,   23,  23 },  
+	/* 24 */ {  25, ESNR,  ESNR,   ESNR,   ESNR,   ESNR,   ESNR,   ESNR,   ESNR,   ESNR,  ESNR },
+	/* 25 */ {  FS, FS,  FS,   FS,   FS,   FS,   FS,   FS,   FS,   FS,  FS },
 };
 
 /* Define accepting states types */
@@ -390,7 +393,10 @@ static integer stateType[NUM_STATES] = {
 	FSNR, /* 19 Character literal*/
 	FSWR, /* 20 DIV OPERATOR */
 	FSNR, /* 21 (Err1 - no retract) */
-	FSWR  /* 22 (Err2 - retract) */
+	FSWR, /* 22 (Err2 - retract) */
+	NOFS, /* 23 */
+	NOFS, /* 24 */
+	FSNR  /* 25 Document literals */
 };
 
 /* Static (local) function  prototypes */
@@ -447,7 +453,10 @@ static PTR_ACCFUN finalStateTable[NUM_STATES] = {
 	funcCHAR,	/* -    [19] */
 	funcDIVOP,	/* -    [20] */
 	funcErr,	/* -    [21] */
-	funcErr		/* -    [22] */
+	funcErr,	/* -    [22] */
+	NULL,		/* -    [23] */
+	NULL,		/* -    [24] */
+	funcDOC		/* -    [25] */
 };
 
 /*
@@ -456,7 +465,7 @@ Language keywords
 -------------------------------------------------
 */
 
-#define KWT_SIZE 11
+#define KWT_SIZE 11 + 1
 
 static string keywordTable[KWT_SIZE] = {
 	"var",		/* KW00 */
@@ -469,7 +478,8 @@ static string keywordTable[KWT_SIZE] = {
 	"break",	/* KW07 */
 	"continue",	/* KW08 */
 	"function",	/* KW09 */
-	"return"	/* KW10 */
+	"return",	/* KW10 */
+	"char"		/* KW11 */
 };
 
 /* NEW SECTION: About indentation */

@@ -91,6 +91,7 @@
 
 /* Global objects - variables (used in other codes as external) */
 BufferPointer stringLiteralBuffer;		/* This buffer implements String Literal Table */
+BufferPointer documentLiteralBuffer;	/* This buffer implements Document Literal Table */
 integer errorNumber;					/* Run-time error number = 0 by default (ANSI) */
 
 /* External objects */
@@ -178,6 +179,13 @@ integer mainScanner(integer argc, string* argv) {
 		exit(EXIT_FAILURE);
 	}
 
+	/* Create document Literal Table */
+	documentLiteralBuffer = readerCreate(READER_DEFAULT_SIZE, READER_DEFAULT_INCREMENT, MODE_ADDIT);
+	if (documentLiteralBuffer == NULL) {
+		printScannerError("%s%s", argv[0], ": Could not create document literals buffer");
+		exit(EXIT_FAILURE);
+	}
+
 	/* Testbed for the scanner and add SEOF to input program buffer*/
 	/* Initialize scanner input buffer */
 	if (startScanner(sourceBuffer)) {
@@ -200,9 +208,17 @@ integer mainScanner(integer argc, string* argv) {
 		readerPrint(stringLiteralBuffer);
 	}
 	printf("\n----------------------------------\n");
+	/* Print document literal buffer if not empty */
+	printf("\nPrinting document table...\n");
+	printf("\n----------------------------------\n");
+	if (readerGetPosWrte(documentLiteralBuffer)) {
+		readerPrint(documentLiteralBuffer);
+	}
+	printf("\n----------------------------------\n");
 	readerRestore(sourceBuffer); //xxx
 	readerRestore(stringLiteralBuffer); //xxx
-	sourceBuffer = stringLiteralBuffer = NULL;
+	readerRestore(documentLiteralBuffer); //xxx
+	sourceBuffer = stringLiteralBuffer = documentLiteralBuffer = NULL;
 	printScannerData(scData);
 	/* Ass2 evaluation only */
 	if (argv[3] != NULL && *argv[3] == 'l')

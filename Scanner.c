@@ -82,6 +82,7 @@ Global vars definitions
 /* Global objects - variables */
 /* This buffer is used as a repository for string literals. */
 extern BufferPointer stringLiteralBuffer;	/* String literal table */
+extern BufferPointer documentLiteralBuffer;	/* Document literal table */
 integer line;								/* Current line number of the source code */
 extern integer errorNumber;					/* Defined in platy_st.c - run-time error number */
 
@@ -120,6 +121,7 @@ integer startScanner(BufferPointer psc_buf) {
 	/* in case the buffer has been read previously  */
 	readerRecover(psc_buf);
 	readerClear(stringLiteralBuffer);
+	readerClear(documentLiteralBuffer);
 	line = 1;
 	sourceBuffer = psc_buf;
 	return EXIT_SUCCESS; /*0*/
@@ -752,10 +754,42 @@ Token funcCHAR(string lexeme) {
 }
 
 /*
- ************************************************************
+************************************************************
+ * This function checks if one specific lexeme is a document.
+ ***********************************************************
+*/
+
+Token funcDOC(string lexeme) {
+	Token currentToken = { 0 };
+	integer i = 0, len = (integer)strlen(lexeme);
+	currentToken.attribute.contentString = readerGetPosWrte(documentLiteralBuffer);
+	for (i = 1; i < len - 1; i++) {
+		if (lexeme[i] == NWL_CHR)
+			line++;
+		if (!readerAddChar(documentLiteralBuffer, lexeme[i])) {
+			currentToken.code = RTE_T;
+			scData.scanHistogram[currentToken.code]++;
+			strcpy(currentToken.attribute.errLexeme, "Run Time Error:");
+			errorNumber = RTE_CODE;
+			return currentToken;
+		}
+	}
+	if (!readerAddChar(documentLiteralBuffer, EOS_CHR)) {
+		currentToken.code = RTE_T;
+		scData.scanHistogram[currentToken.code]++;
+		strcpy(currentToken.attribute.errLexeme, "Run Time Error:");
+		errorNumber = RTE_CODE;
+		return currentToken;
+	}
+	currentToken.code = DOC_T;
+	scData.scanHistogram[currentToken.code]++;
+	return currentToken;
+}
+
+/************************************************************
  * The function prints the token returned by the scanner
  ***********************************************************
- */
+*/
 
 void printToken(Token t) {
 	extern string keywordTable[]; /* link to keyword table in */
@@ -909,6 +943,10 @@ void printToken(Token t) {
 		break;
 	case CHAR_T:
 		printf("CHAR_T\t\t%c\n", t.attribute.charValue);
+		break;
+	case DOC_T:
+		printf("DOC_T\t\t%d\t", (integer)t.attribute.codeType);
+		printf("%s\n", readerGetContent(documentLiteralBuffer, (integer)t.attribute.codeType));
 		break;
 	default:
 		printf("Scanner error: invalid token code: %d\n", t.code);
