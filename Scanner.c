@@ -732,6 +732,27 @@ Token funcDIVOP(string lexeme) {
 
 /*
  ************************************************************
+ * This function checks if one specific lexeme is a character.
+ ***********************************************************
+ */
+
+Token funcCHAR(string lexeme) {
+	printf("%s\n", lexeme);
+	Token currentToken = { 0 };
+	integer len = (integer)strlen(lexeme);
+	if (len == 3) {
+		currentToken.code = CHAR_T;
+		scData.scanHistogram[currentToken.code]++;
+		currentToken.attribute.charValue = lexeme[1];
+	}
+	else {
+		currentToken = funcErr(lexeme);
+	}
+	return currentToken;
+}
+
+/*
+ ************************************************************
  * The function prints the token returned by the scanner
  ***********************************************************
  */
@@ -885,6 +906,9 @@ void printToken(Token t) {
 		break;
 	case TEMPLATE_END_T:
 		printf("TEMPLATE_END_T\n");
+		break;
+	case CHAR_T:
+		printf("CHAR_T\t\t%c\n", t.attribute.charValue);
 		break;
 	default:
 		printf("Scanner error: invalid token code: %d\n", t.code);

@@ -68,7 +68,7 @@
 
 #define RTE_CODE 1  /* Value for run-time error */
 
-#define NUM_TOKENS 47
+#define NUM_TOKENS 49
 
 enum TOKENS {
 	/* Basic Tokens */
@@ -136,7 +136,13 @@ enum TOKENS {
 
 	/* Template Literal Tokens */
 	TEMPLATE_START_T,/* 45: Template literal start token (`) */
-	TEMPLATE_END_T   /* 46: Template literal end token (`) */
+	TEMPLATE_END_T,  /* 46: Template literal end token (`) */
+
+	/* Documenting Token */
+	DOC_T, 			/* 47: Documentation token */
+
+	/* Character Token*/
+	CHAR_T,			/* 48: Character token */	
 };
 
 static string tokenStrTable[NUM_TOKENS] = {
@@ -202,7 +208,11 @@ static string tokenStrTable[NUM_TOKENS] = {
 
 	/* Template Literal Tokens */
 	"TEMPLATE_START_T",/* 45 */
-	"TEMPLATE_END_T"   /* 46 */
+	"TEMPLATE_END_T",   /* 46 */
+
+	/* Documenting Tokens */
+	"DOC_T",            /* 47 */
+	"CHAR_T"			/* 48 */
 };
 
 
@@ -242,6 +252,7 @@ typedef union TokenAttribute {
 	integer keywordIndex;				/* keyword index in the keyword table */
 	integer contentString;				/* string literal offset from the beginning of the string literal buffer (stringLiteralBuffer->content) */
 	float floatValue;					/* floating-point literal attribute (value) */
+	character charValue;				/* character literal attribute (value) */
 	character idLexeme[VID_LEN + 1];	/* variable identifier token attribute */
 	character errLexeme[ERR_LEN + 1];	/* error token attribite */
 } TokenAttribute;
@@ -252,6 +263,7 @@ typedef struct idAttibutes {
 		integer intValue;			/* Integer value */
 		float floatValue;			/* Float value */
 		string stringContent;		/* String value */
+		character charValue;		/* Character value */
 	} values;
 } IdAttibutes;
 
@@ -375,7 +387,7 @@ static integer stateType[NUM_STATES] = {
 	NOFS, /* 16 */
 	FSWR, /* 17 /= OPERATOR */
 	NOFS, /* 18 */
-	FSNR, /* 19 Sting literal*/
+	FSNR, /* 19 Character literal*/
 	FSWR, /* 20 DIV OPERATOR */
 	FSNR, /* 21 (Err1 - no retract) */
 	FSWR  /* 22 (Err2 - retract) */
@@ -404,6 +416,8 @@ Token funcCMT   (string lexeme);
 Token funcKEY	(string lexeme);
 Token funcErr	(string lexeme);
 Token funcDIVOP	(string lexeme);
+Token funcCHAR	(string lexeme);
+Token funcDOC	(string lexeme);	
 
 /* 
  * Accepting function (action) callback table (array) definition 
@@ -430,7 +444,7 @@ static PTR_ACCFUN finalStateTable[NUM_STATES] = {
 	NULL,		/* -    [16] */
 	funcDIVOP,	/* -    [17] */
 	NULL,		/* -    [18] */
-	funcSL,		/* -    [19] */
+	funcCHAR,	/* -    [19] */
 	funcDIVOP,	/* -    [20] */
 	funcErr,	/* -    [21] */
 	funcErr		/* -    [22] */
