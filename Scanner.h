@@ -479,7 +479,7 @@ static string keywordTable[KWT_SIZE] = {
 	"continue",	/* KW08 */
 	"function",	/* KW09 */
 	"return",	/* KW10 */
-	"char"		/* KW11 */
+	"Char"		/* KW11 */
 };
 
 /* NEW SECTION: About indentation */
