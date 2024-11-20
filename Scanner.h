@@ -442,20 +442,21 @@ Language keywords
 -------------------------------------------------
 */
 
-#define KWT_SIZE 11
+#define KWT_SIZE 12
 
 static string keywordTable[KWT_SIZE] = {
 	"var",		/* KW00 */
 	"if",		/* KW01 */
 	"else",		/* KW02 */
 	"switch",	/* KW03 */
-	"do",		/* KW04 */
-	"while",	/* KW05 */
-	"for",		/* KW06 */
-	"break",	/* KW07 */
-	"continue",	/* KW08 */
-	"function",	/* KW09 */
-	"return"	/* KW10 */
+	"case",		/* KW04 */
+	"do",		/* KW05 */
+	"while",	/* KW06 */
+	"for",		/* KW07 */
+	"break",	/* KW08 */
+	"continue",	/* KW09 */
+	"function",	/* KW10 */
+	"return"	/* KW11 */
 };
 
 /* NEW SECTION: About indentation */
