@@ -442,7 +442,7 @@ Language keywords
 -------------------------------------------------
 */
 
-#define KWT_SIZE 12
+#define KWT_SIZE 14
 
 static string keywordTable[KWT_SIZE] = {
 	"var",		/* KW00 */
@@ -456,7 +456,9 @@ static string keywordTable[KWT_SIZE] = {
 	"break",	/* KW08 */
 	"continue",	/* KW09 */
 	"function",	/* KW10 */
-	"return"	/* KW11 */
+	"return",	/* KW11 */
+	"true",		/* KW12 */
+	"false"		/* KW13 */
 };
 
 /* NEW SECTION: About indentation */
