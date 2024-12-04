@@ -65,13 +65,13 @@
 
 /* Global vars */
 static Token			lookahead;
-extern BufferPointer	stringLiteralTable;
+extern BufferPointer	stringLiteralBuffer;
 extern integer			line;
 extern Token			tokenizer(void);
 extern string			keywordTable[KWT_SIZE];
 static integer			syntaxErrorNumber = 0;
 
-#define LANG_WRTE		"console.log("
+#define LANG_WRTE		"log("
 #define LANG_READ		"prompt("
 #define LANG_MAIN		"main("
 
@@ -123,15 +123,15 @@ enum BNF_RULES {
 
 	BNF_comment,									/*  2 */
 
-	BNF_optVarDeclarations,							/*  3 */
+	BNF_codeSession,								/*  3 */
+	BNF_optionalStatements,							/*  4 */
+	BNF_statements,									/*  5 */
+	BNF_statementsPrime,							/*  6 */
+	BNF_statement,									/*  7 */
 
-	BNF_codeSession,								/*  4 */
-	BNF_optionalStatements,							/*  5 */
-	BNF_statements,									/*  6 */
-	BNF_statementsPrime,							/*  7 */
-	BNF_statement,									/*  8 */
+	BNF_assignmentStatement,						/*  8 */
+	BNF_optVarDeclaration,							/*  9 */
 
-	BNF_assignmentStatement,						/*  9 */
 	BNF_conditionStatement,							/* 10 */
 	BNF_iterationStatement,							/* 11 */
 	BNF_returnStatement,							/* 12 */
@@ -146,16 +146,20 @@ static string BNFStrTable[NUM_BNF_RULES] = {
 	"BNF_error",                /*  0 */
 	"BNF_program",              /*  1 */
 	"BNF_comment",              /*  2 */
-	"BNF_optVarDeclarations",   /*  3 */
-	"BNF_codeSession",          /*  4 */
-	"BNF_optionalStatements",   /*  5 */
-	"BNF_statements",           /*  6 */
-	"BNF_statementsPrime",      /*  7 */
-	"BNF_statement",            /*  8 */
-	"BNF_assignmentStatement",  /*  9 */
+
+	"BNF_codeSession",          /*  3 */
+	"BNF_optionalStatements",   /*  4 */
+	"BNF_statements",           /*  5 */
+	"BNF_statementsPrime",      /*  6 */
+	"BNF_statement",            /*  7 */
+
+	"BNF_assignmentStatement",  /*  8 */
+	"BNF_optVarDeclaration",	/*  9 */
+
 	"BNF_conditionStatement",   /* 10 */
 	"BNF_iterationStatement",   /* 11 */
 	"BNF_returnStatement",      /* 12 */
+
 	"BNF_inputStatement",       /* 13 */
 	"BNF_outputStatement",      /* 14 */
 	"BNF_outputVariableValue"   /* 15 */
@@ -163,16 +167,21 @@ static string BNFStrTable[NUM_BNF_RULES] = {
 
 void program();                 /*  1 */
 void comment();                 /*  2 */
-void optVarDeclarations();      /*  3 */
-void codeSession();             /*  4 */
-void optionalStatements();      /*  5 */
-void statements();              /*  6 */
-void statementsPrime();         /*  7 */
-void statement();               /*  8 */
-void assignmentStatement();     /*  9 */
+
+void codeSession();             /*  3 */
+
+void optionalStatements();      /*  4 */
+void statements();              /*  5 */
+void statementsPrime();         /*  6 */
+void statement();               /*  7 */
+
+void assignmentStatement();     /*  8 */
+void optVarDeclaration();       /*	9 */
+
 void conditionStatement();      /* 10 */
 void iterationStatement();      /* 11 */
 void returnStatement();         /* 12 */
+
 void inputStatement();          /* 13 */
 void outputStatement();         /* 14 */
 void outputVariableValue();     /* 15 */

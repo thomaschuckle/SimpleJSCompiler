@@ -95,7 +95,7 @@
 
  /* Global objects - variables */
 static BufferPointer sourceBuffer;		/* pointer to input (source) buffer */
-BufferPointer stringLiteralTable;		/* This buffer is used as a repository for string literals */
+BufferPointer stringLiteralBuffer;		/* This buffer is used as a repository for string literals */
 integer errorNumber;					/* Run-time error number = 0 by default (ANSI) */
 
 /* External objects */
@@ -179,8 +179,8 @@ integer mainParser(integer argc, string* argv) {
 		}
 	}
 	/* create string Literal Table */
-	stringLiteralTable = readerCreate(READER_DEFAULT_SIZE, READER_DEFAULT_INCREMENT, MODE_ADDIT);
-	if (stringLiteralTable == NULL) {
+	stringLiteralBuffer = readerCreate(READER_DEFAULT_SIZE, READER_DEFAULT_INCREMENT, MODE_ADDIT);
+	if (stringLiteralBuffer == NULL) {
 		printParserError("%s%s%s", argv[0], ": ", "Could not create string literal buffer");
 		exit(EXIT_FAILURE);
 	}
@@ -279,5 +279,5 @@ void callGarbageCollector(void) {
 		printf("\nSyntax errors: %d\n", syntaxErrorNumber);
 	printf("\nCollecting garbage...\n");
 	readerFree(sourceBuffer);
-	readerFree(stringLiteralTable);
+	readerFree(stringLiteralBuffer);
 }

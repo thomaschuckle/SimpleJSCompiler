@@ -611,7 +611,7 @@ Token funcID(string lexeme) {
  * Acceptance State Function SL
  *		Function responsible to identify SL (string literals).
  * - The lexeme must be stored in the String Literal Table 
- *   (stringLiteralTable). You need to include the literals in 
+ *   (stringLiteralBuffer). You need to include the literals in 
  *   this structure, using offsets. Remember to include \0 to
  *   separate the lexemes. Remember also to incremente the line.
  ***********************************************************
