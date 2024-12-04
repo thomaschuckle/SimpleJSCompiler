@@ -2,7 +2,7 @@
 ************************************************************
 * COMPILERS COURSE - Algonquin College
 * Code version: Fall, 2024
-* Author: TO_DO
+* Author: Vi Tuan Ha, Corey Lambert
 * Professors: Paulo Sousa
 ************************************************************
 #
@@ -23,7 +23,7 @@
 # "    @@     @ @@   /@/   @@@ @      @@    ”
 # "    @@     @@@@@@@@@@@@@@@         @@    ”
 # "    @@                             @@    ”
-# "    @@         S O F I A           @@    ”
+# "    @@           S J S             @@    ”
 # "    @@                             @@    ”
 # "    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@    ”
 # "                                         "
@@ -66,97 +66,115 @@
 /* Global vars */
 static Token			lookahead;
 extern BufferPointer	stringLiteralTable;
-extern sofia_intg		line;
-extern Token			tokenizer(sofia_void);
-extern sofia_string		keywordTable[KWT_SIZE];
-static sofia_intg		syntaxErrorNumber = 0;
+extern integer			line;
+extern Token			tokenizer(void);
+extern string			keywordTable[KWT_SIZE];
+static integer			syntaxErrorNumber = 0;
 
-#define LANG_WRTE		"print&"
-#define LANG_READ		"input&"
-#define LANG_MAIN		"main&"
+#define LANG_WRTE		"console.log("
+#define LANG_READ		"prompt("
+#define LANG_MAIN		"main("
 
-/* TO_DO: Create ALL constants for keywords (sequence given in table.h) */
+#define STR_LANGNAME	"SimpleJS"
 
 /* Constants */
 enum KEYWORDS {
 	NO_ATTR = -1,
-	KW_data,
-	KW_code,
-	KW_int,
-	KW_real,
-	KW_string,
-	KW_if,
-	KW_then,
-	KW_else,
-	KW_while,
-	KW_do
+	KW_var,       /* KW00 */
+	KW_if,        /* KW01 */
+	KW_else,      /* KW02 */
+	KW_switch,    /* KW03 */
+	KW_case,      /* KW04 */
+	KW_do,        /* KW05 */
+	KW_while,     /* KW06 */
+	KW_for,       /* KW07 */
+	KW_break,     /* KW08 */
+	KW_continue,  /* KW09 */
+	KW_function,  /* KW10 */
+	KW_return,    /* KW11 */
+	KW_true,      /* KW12 */
+	KW_false,     /* KW13 */
 };
 
-/* TO_DO: Define the number of BNF rules */
-#define NUM_BNF_RULES 12
+#define NUM_BNF_RULES 16
 
 /* Parser */
 typedef struct parserData {
-	sofia_intg parsHistogram[NUM_BNF_RULES];	/* Number of BNF Statements */
+	integer parsHistogram[NUM_BNF_RULES];	/* Number of BNF Statements */
 } ParserData, * pParsData;
 
 /* Number of errors */
-sofia_intg numParserErrors;
+integer numParserErrors;
 
 /* Scanner data */
 ParserData psData;
 
 /* Function definitions */
-sofia_void startParser();
-sofia_void matchToken(sofia_intg, sofia_intg);
-sofia_void syncErrorHandler(sofia_intg);
-sofia_void printError();
-sofia_void printBNFData(ParserData psData);
+void startParser();
+void matchToken(integer, integer);
+void syncErrorHandler(integer);
+void printError();
+void printBNFData(ParserData psData);
 
 /* List of BNF statements */
 enum BNF_RULES {
 	BNF_error,										/*  0: Error token */
-	BNF_codeSession,								/*  1 */
+	BNF_program,									/*  1 */
+
 	BNF_comment,									/*  2 */
-	BNF_dataSession,								/*  3 */
-	BNF_optVarListDeclarations,						/*  4 */
+
+	BNF_optVarDeclarations,							/*  3 */
+
+	BNF_codeSession,								/*  4 */
 	BNF_optionalStatements,							/*  5 */
-	BNF_outputStatement,							/*  6 */
-	BNF_outputVariableList,							/*  7 */
-	BNF_program,									/*  8 */
-	BNF_statement,									/*  9 */
-	BNF_statements,									/* 10 */
-	BNF_statementsPrime								/* 11 */
+	BNF_statements,									/*  6 */
+	BNF_statementsPrime,							/*  7 */
+	BNF_statement,									/*  8 */
+
+	BNF_assignmentStatement,						/*  9 */
+	BNF_conditionStatement,							/* 10 */
+	BNF_iterationStatement,							/* 11 */
+	BNF_returnStatement,							/* 12 */
+
+	BNF_inputStatement,								/* 13 */
+
+	BNF_outputStatement,							/* 14 */
+	BNF_outputVariableValue,						/* 15 */
 };
 
-
-/* TO_DO: Define the list of keywords */
-static sofia_string BNFStrTable[NUM_BNF_RULES] = {
-	"BNF_error",
-	"BNF_codeSession",
-	"BNF_comment",
-	"BNF_dataSession",
-	"BNF_optVarListDeclarations",
-	"BNF_optionalStatements",
-	"BNF_outputStatement",
-	"BNF_outputVariableList",
-	"BNF_program",
-	"BNF_statement",
-	"BNF_statements",
-	"BNF_statementsPrime"
+static string BNFStrTable[NUM_BNF_RULES] = {
+	"BNF_error",                /*  0 */
+	"BNF_program",              /*  1 */
+	"BNF_comment",              /*  2 */
+	"BNF_optVarDeclarations",   /*  3 */
+	"BNF_codeSession",          /*  4 */
+	"BNF_optionalStatements",   /*  5 */
+	"BNF_statements",           /*  6 */
+	"BNF_statementsPrime",      /*  7 */
+	"BNF_statement",            /*  8 */
+	"BNF_assignmentStatement",  /*  9 */
+	"BNF_conditionStatement",   /* 10 */
+	"BNF_iterationStatement",   /* 11 */
+	"BNF_returnStatement",      /* 12 */
+	"BNF_inputStatement",       /* 13 */
+	"BNF_outputStatement",      /* 14 */
+	"BNF_outputVariableValue"   /* 15 */
 };
 
-/* TO_DO: Place ALL non-terminal function declarations */
-sofia_void codeSession();
-sofia_void comment();
-sofia_void dataSession();
-sofia_void optVarListDeclarations();
-sofia_void optionalStatements();
-sofia_void outputStatement();
-sofia_void outputVariableList();
-sofia_void program();
-sofia_void statement();
-sofia_void statements();
-sofia_void statementsPrime();
+void program();                 /*  1 */
+void comment();                 /*  2 */
+void optVarDeclarations();      /*  3 */
+void codeSession();             /*  4 */
+void optionalStatements();      /*  5 */
+void statements();              /*  6 */
+void statementsPrime();         /*  7 */
+void statement();               /*  8 */
+void assignmentStatement();     /*  9 */
+void conditionStatement();      /* 10 */
+void iterationStatement();      /* 11 */
+void returnStatement();         /* 12 */
+void inputStatement();          /* 13 */
+void outputStatement();         /* 14 */
+void outputVariableValue();     /* 15 */
 
 #endif
