@@ -2,7 +2,7 @@
 ************************************************************
 * COMPILERS COURSE - Algonquin College
 * Code version: Fall, 2024
-* Author: TO_DO
+* Author: Vi Tuan Ha, Corey Lamber
 * Professors: Paulo Sousa
 ************************************************************
 #
@@ -23,7 +23,7 @@
 # "    @@     @ @@   /@/   @@@ @      @@    ”
 # "    @@     @@@@@@@@@@@@@@@         @@    ”
 # "    @@                             @@    ”
-# "    @@         S O F I A           @@    ”
+# "    @@            S J S            @@    ”
 # "    @@                             @@    ”
 # "    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@    ”
 # "                                         "
@@ -44,8 +44,6 @@
 ************************************************************
 */
 
-/* TO_DO: Adjust the function header */
-
 #ifndef COMPILERS_H_
 #include "Compilers.h"
 #endif
@@ -57,16 +55,16 @@
 /* Parser data */
 extern ParserData psData; /* BNF statistics */
 
+int return_flag = 0;
+
 /*
 ************************************************************
  * Process Parser
  ***********************************************************
  */
-/* TO_DO: This is the function to start the parser - check your program definition */
 
-sofia_void startParser() {
-	/* TO_DO: Initialize Parser data */
-	sofia_intg i = 0;
+void startParser() {
+	integer i = 0;
 	for (i = 0; i < NUM_BNF_RULES; i++) {
 		psData.parsHistogram[i] = 0;
 	}
@@ -79,15 +77,13 @@ sofia_void startParser() {
 	printf("%s%s\n", STR_LANGNAME, ": Source file parsed");
 }
 
-
 /*
  ************************************************************
  * Match Token
  ***********************************************************
  */
-/* TO_DO: This is the main code for match - check your definition */
-sofia_void matchToken(sofia_intg tokenCode, sofia_intg tokenAttribute) {
-	sofia_intg matchFlag = 1;
+void matchToken(integer tokenCode, integer tokenAttribute) {
+	integer matchFlag = 1;
 	switch (lookahead.code) {
 	case KW_T:
 		if (lookahead.attribute.codeType != tokenAttribute)
@@ -99,8 +95,10 @@ sofia_void matchToken(sofia_intg tokenCode, sofia_intg tokenAttribute) {
 	if (matchFlag && lookahead.code == SEOF_T)
 		return;
 	if (matchFlag) {
+		printf("Here is my current: %d\n", lookahead.code);
 		lookahead = tokenizer();
 		if (lookahead.code == ERR_T) {
+			printf("Here is my current: %d\n", lookahead.code);
 			printError();
 			lookahead = tokenizer();
 			syntaxErrorNumber++;
@@ -115,8 +113,7 @@ sofia_void matchToken(sofia_intg tokenCode, sofia_intg tokenAttribute) {
  * Syncronize Error Handler
  ***********************************************************
  */
-/* TO_DO: This is the function to handler error - adjust basically datatypes */
-sofia_void syncErrorHandler(sofia_intg syncTokenCode) {
+void syncErrorHandler(integer syncTokenCode) {
 	printError();
 	syntaxErrorNumber++;
 	while (lookahead.code != syncTokenCode) {
@@ -133,8 +130,7 @@ sofia_void syncErrorHandler(sofia_intg syncTokenCode) {
  * Print Error
  ***********************************************************
  */
-/* TO_DO: This is the function to error printing - adjust basically datatypes */
-sofia_void printError() {
+void printError() {
 	extern numParserErrors;			/* link to number of errors (defined in Parser.h) */
 	Token t = lookahead;
 	printf("%s%s%3d\n", STR_LANGNAME, ": Syntax error:  Line:", line);
@@ -150,7 +146,7 @@ sofia_void printError() {
 		printf("MNID_T:\t\t%s\t\n", t.attribute.idLexeme);
 		break;
 	case STR_T:
-		printf("STR_T: %s\n", readerGetContent(stringLiteralTable, t.attribute.contentString));
+		printf("STR_T: %s\n", readerGetContent(stringLiteralBuffer, t.attribute.contentString));
 		break;
 	case KW_T:
 		printf("KW_T: %s\n", keywordTable[t.attribute.codeType]);
@@ -183,32 +179,106 @@ sofia_void printError() {
  * FIRST(<program>)= {CMT_T, MNID_T (main&), SEOF_T}.
  ***********************************************************
  */
-sofia_void program() {
+void program() {
 	/* Update program statistics */
 	psData.parsHistogram[BNF_program]++;
 	/* Program code */
-	switch (lookahead.code) {
-	case CMT_T:
-		comment();
-	case MNID_T:
-		if (strncmp(lookahead.attribute.idLexeme, LANG_MAIN, 5) == 0) {
-			matchToken(MNID_T, NO_ATTR);
-			matchToken(LPR_T, NO_ATTR);
-			matchToken(RPR_T, NO_ATTR);
-			matchToken(LBR_T, NO_ATTR);
-			dataSession();
-			codeSession();
-			matchToken(RBR_T, NO_ATTR);
+
+	while (lookahead.code != SEOF_T) {
+		switch (lookahead.code) {
+		case CMT_T:
+			comment();
+			break;
+		case STR_T:
+			matchToken(STR_T, NO_ATTR);
+			optionalStatements();
+			matchToken(EOS_T, NO_ATTR);
+			break;
+		case INL_T:
+			matchToken(INL_T, NO_ATTR);
+			optionalStatements();
+			matchToken(EOS_T, NO_ATTR);
+			break;
+		case ADD_T:
+			matchToken(ADD_T, NO_ATTR);
+			optionalStatements();
+			matchToken(EOS_T, NO_ATTR);
+			break;
+		case SUB_T:
+			matchToken(SUB_T, NO_ATTR);
+			optionalStatements();
+			matchToken(EOS_T, NO_ATTR);
+			break;
+		case EOS_T:
+			matchToken(EOS_T, NO_ATTR);
+			optionalStatements();
+			break;
+		case KW_T:
+			if (strcmp(keywordTable[lookahead.attribute.codeType], "var") == 0) {
+				matchToken(KW_T, KW_var);
+				matchToken(VID_T, NO_ATTR);
+				assignmentStatement();
+				matchToken(EOS_T, NO_ATTR);
+				break;
+			}
+			else if (strcmp(keywordTable[lookahead.attribute.codeType], "function") == 0) {
+				matchToken(KW_T, KW_function);
+				matchToken(MNID_T, NO_ATTR);
+				matchToken(RPR_T, NO_ATTR);
+				matchToken(LBR_T, NO_ATTR);
+				codeSession();
+				matchToken(RBR_T, NO_ATTR);
+				break;
+			}
+			else if (strcmp(keywordTable[lookahead.attribute.codeType], "if") == 0) {
+				matchToken(KW_T, KW_if);
+				matchToken(LPR_T, NO_ATTR);
+				conditionStatement();
+				matchToken(RPR_T, NO_ATTR);
+				matchToken(LBR_T, NO_ATTR);
+				codeSession();
+				matchToken(RBR_T, NO_ATTR);
+				break;
+			}
+			else if (strcmp(keywordTable[lookahead.attribute.codeType], "while") == 0) {
+				matchToken(KW_T, KW_while);
+				matchToken(LPR_T, NO_ATTR);
+				conditionStatement();
+				matchToken(RPR_T, NO_ATTR);
+				matchToken(LBR_T, NO_ATTR);
+				codeSession();
+				matchToken(RBR_T, NO_ATTR);
+				break;
+			}
+			else if (strcmp(keywordTable[lookahead.attribute.codeType], "return") == 0) {
+				matchToken(KW_T, KW_return);
+				returnStatement();
+				matchToken(EOS_T, NO_ATTR);
+				break;
+			}
+			else if (strcmp(keywordTable[lookahead.attribute.codeType], "true") == 0) {
+				matchToken(KW_T, KW_true);
+				optionalStatements();
+				matchToken(EOS_T, NO_ATTR);
+				break;
+			}
+			else if (strcmp(keywordTable[lookahead.attribute.codeType], "false") == 0) {
+				matchToken(KW_T, KW_false);
+				optionalStatements();
+				matchToken(EOS_T, NO_ATTR);
+				break;
+			}
+			else {
+				printError();
+				break; 
+			}
+		case SEOF_T:
+			; // Empty
+			break;
+		default:
+			lookahead = tokenizer();
 			break;
 		}
-		else {
-			printError();
-		}
-	case SEOF_T:
-		; // Empty
-		break;
-	default:
-		printError();
 	}
 	printf("%s%s\n", STR_LANGNAME, ": Program parsed");
 }
@@ -220,7 +290,7 @@ sofia_void program() {
  * FIRST(<comment>)= {CMT_T}.
  ***********************************************************
  */
-sofia_void comment() {
+void comment() {
 	psData.parsHistogram[BNF_comment]++;
 	matchToken(CMT_T, NO_ATTR);
 	printf("%s%s\n", STR_LANGNAME, ": Comment parsed");
@@ -228,39 +298,46 @@ sofia_void comment() {
 
 /*
  ************************************************************
- * dataSession
- * BNF: <dataSession> -> data { <opt_varlist_declarations> }
- * FIRST(<program>)= {KW_T (KW_data)}.
+ * assignmentStatement
+ * BNF: <assignment statement>  -> <assignment expression>
+ *		<assignment expression> ->  <var_declaration> = <arithmetic expression>
+						| <var_declaration> = <string expression>
+ 						| <var_declaration>= <boolean expression>
  ***********************************************************
  */
-sofia_void dataSession() {
-	psData.parsHistogram[BNF_dataSession]++;
+void assignmentStatement() {
+	psData.parsHistogram[BNF_assignmentStatement]++;
 	switch (lookahead.code) {
 	case CMT_T:
 		comment();
 	default:
-		matchToken(KW_T, KW_data);
-		matchToken(LBR_T, NO_ATTR);
-		optVarListDeclarations();
-		matchToken(RBR_T, NO_ATTR);
-		printf("%s%s\n", STR_LANGNAME, ": Data Session parsed");
+		optVarDeclaration();
+		printf("%s%s\n", STR_LANGNAME, ": Assignment statement parsed");
 	}
 }
 
 /*
  ************************************************************
- * Optional Var List Declarations
- * BNF: <opt_varlist_declarations> -> <varlist_declarations> | e
- * FIRST(<opt_varlist_declarations>) = { e, KW_T (KW_int), KW_T (KW_real), KW_T (KW_string)}.
+ * Optional Var Declaration
+ * BNF: <var_declaration> -> var <integer_value> |
+					  var <string_value> |
+					  var <boolean_value> | ϵ
  ***********************************************************
  */
-sofia_void optVarListDeclarations() {
-	psData.parsHistogram[BNF_optVarListDeclarations]++;
+void optVarDeclaration() {
+	psData.parsHistogram[BNF_optVarDeclaration]++;
+	lookahead = tokenizer();
 	switch (lookahead.code) {
+	case STR_T:
+		matchToken(STR_T, NO_ATTR);
+		break;
+	case INL_T:
+		matchToken(INL_T, NO_ATTR);
+		break;
 	default:
 		; // Empty
 	}
-	printf("%s%s\n", STR_LANGNAME, ": Optional Variable List Declarations parsed");
+	printf("%s%s\n", STR_LANGNAME, ": Optional Variable Declaration parsed");
 }
 
 /*
@@ -270,18 +347,18 @@ sofia_void optVarListDeclarations() {
  * FIRST(<codeSession>)= {KW_T (KW_code)}.
  ***********************************************************
  */
-sofia_void codeSession() {
+void codeSession() {
 	psData.parsHistogram[BNF_codeSession]++;
-	switch (lookahead.code) {
-	case CMT_T:
-		comment();
-	default:
-		matchToken(KW_T, KW_code);
-		matchToken(LBR_T, NO_ATTR);
-		optionalStatements();
-		matchToken(RBR_T, NO_ATTR);
-		printf("%s%s\n", STR_LANGNAME, ": Code Session parsed");
+
+	while (!return_flag) {
+		switch (lookahead.code) {
+		case CMT_T:
+			comment();
+		default:
+			optionalStatements();
+		}
 	}
+	printf("%s%s\n", STR_LANGNAME, ": Code Session parsed");
 }
 
 /* TO_DO: Continue the development (all non-terminal functions) */
@@ -294,19 +371,30 @@ sofia_void codeSession() {
  *				KW_T(KW_while), MNID_T(print&), MNID_T(input&) }
  ***********************************************************
  */
-sofia_void optionalStatements() {
+void optionalStatements() {
 	psData.parsHistogram[BNF_optionalStatements]++;
+	
 	switch (lookahead.code) {
 	case CMT_T:
 		comment();
-	case MNID_T:
-		if ((strncmp(lookahead.attribute.idLexeme, LANG_WRTE, 6) == 0) ||
-			(strncmp(lookahead.attribute.idLexeme, LANG_READ, 6) == 0)) {
-			statements();
-			break;
-		}
+	case STR_T:
+		statement();
+		break;
+	case INL_T:
+		statement();
+		break;
+	case ADD_T:
+		statement();
+		break;
+	case SUB_T:
+		statement();
+		break;
+	case EOS_T:
+		statement();
+		break;
 	default:
-		; // Empty
+		statements();
+		break;
 	}
 	printf("%s%s\n", STR_LANGNAME, ": Optional statements parsed");
 }
@@ -319,10 +407,10 @@ sofia_void optionalStatements() {
  *		KW_T(KW_while), MNID_T(input&), MNID_T(print&) }
  ***********************************************************
  */
-sofia_void statements() {
+void statements() {
 	psData.parsHistogram[BNF_statements]++;
 	statement();
-	statementsPrime();
+	//statementsPrime();
 	printf("%s%s\n", STR_LANGNAME, ": Statements parsed");
 }
 
@@ -334,18 +422,52 @@ sofia_void statements() {
  *		KW_T(KW_if), KW_T(KW_while), MNID_T(input&), MNID_T(print&) }
  ***********************************************************
  */
-sofia_void statementsPrime() {
-	psData.parsHistogram[BNF_statementsPrime]++;
-	switch (lookahead.code) {
-	case MNID_T:
-		if (strncmp(lookahead.attribute.idLexeme, LANG_WRTE, 6) == 0) {
-			statements();
-			break;
-		}
-	default:
-		; //empty string
-	}
-}
+//void statementsPrime() {
+//	psData.parsHistogram[BNF_statementsPrime]++;
+//	switch (lookahead.code) {
+//	case MNID_T:
+//		if (strncmp(lookahead.attribute.idLexeme, LANG_WRTE, 6) == 0 || 
+//			strncmp(lookahead.attribute.idLexeme, LANG_WRTE, 6) == 0) {
+//			statements();
+//			break;
+//		}
+//	case KW_T:
+//		if (strcmp(keywordTable[lookahead.attribute.codeType], "var") == 0) {
+//			statements();
+//			break;
+//		}
+//		else if (strcmp(keywordTable[lookahead.attribute.codeType], "function") == 0) {
+//			statements();
+//			break;
+//		}
+//		else if (strcmp(keywordTable[lookahead.attribute.codeType], "if") == 0) {
+//			statements();
+//			break;
+//		}
+//		else if (strcmp(keywordTable[lookahead.attribute.codeType], "while") == 0) {
+//			statements();
+//			break;
+//		}
+//		else if (strcmp(keywordTable[lookahead.attribute.codeType], "return") == 0) {
+//			statements();
+//			break;
+//		}
+//		else if (strcmp(keywordTable[lookahead.attribute.codeType], "true") == 0) {
+//			statements();
+//			break;
+//		}
+//		else if (strcmp(keywordTable[lookahead.attribute.codeType], "false") == 0) {
+//			statements();
+//			break;
+//		}
+//		else {
+//			printError();
+//		}
+//		break;
+//	default:
+//		; // epsilon
+//	}
+//}
 
 /*
  ************************************************************
@@ -356,26 +478,118 @@ sofia_void statementsPrime() {
  *			MNID_T(input&), MNID_T(print&) }
  ***********************************************************
  */
-sofia_void statement() {
+void statement() {
 	psData.parsHistogram[BNF_statement]++;
 	switch (lookahead.code) {
-	case KW_T:
-		switch (lookahead.attribute.codeType) {
-		default:
-			printError();
-		}
+	case STR_T:
+	case INL_T:
+	case ADD_T:
+	case SUB_T:
+	case EOS_T:
 		break;
+	case KW_T:
+		if (strcmp(keywordTable[lookahead.attribute.codeType], "var") == 0) {
+			matchToken(KW_T, KW_var);
+			matchToken(VID_T, NO_ATTR);
+			assignmentStatement();
+			matchToken(EOS_T, NO_ATTR);
+			break;
+		}
+		else if (strcmp(keywordTable[lookahead.attribute.codeType], "function") == 0) {
+			matchToken(KW_T, KW_function);
+			matchToken(MNID_T, NO_ATTR);
+			matchToken(RPR_T, NO_ATTR);
+			matchToken(LBR_T, NO_ATTR);
+			codeSession();
+			matchToken(RBR_T, NO_ATTR);
+			break;
+		}
+		else if (strcmp(keywordTable[lookahead.attribute.codeType], "if") == 0) {
+			matchToken(KW_T, KW_if);
+			matchToken(LPR_T, NO_ATTR);
+			conditionStatement();
+			matchToken(RPR_T, NO_ATTR);
+			matchToken(LBR_T, NO_ATTR);
+			codeSession();
+			matchToken(RBR_T, NO_ATTR);
+			break;
+		}
+		else if (strcmp(keywordTable[lookahead.attribute.codeType], "while") == 0) {
+			matchToken(KW_T, KW_while);
+			matchToken(LPR_T, NO_ATTR);
+			conditionStatement();
+			matchToken(RPR_T, NO_ATTR);
+			matchToken(LBR_T, NO_ATTR);
+			codeSession();
+			matchToken(RBR_T, NO_ATTR);
+			break;
+		}
+		else if (strcmp(keywordTable[lookahead.attribute.codeType], "return") == 0) {
+			matchToken(KW_T, KW_return);
+			returnStatement();
+			matchToken(EOS_T, NO_ATTR);
+			break;
+		}
+		else if (strcmp(keywordTable[lookahead.attribute.codeType], "true") == 0) {
+			matchToken(KW_T, KW_true);
+			optionalStatements();
+			matchToken(EOS_T, NO_ATTR);
+			break;
+		}
+		else if (strcmp(keywordTable[lookahead.attribute.codeType], "false") == 0) {
+			matchToken(KW_T, KW_false);
+			optionalStatements();
+			matchToken(EOS_T, NO_ATTR);
+			break;
+		}
+		else {
+			printError();
+			break;
+		}
 	case MNID_T:
-		if (strncmp(lookahead.attribute.idLexeme, LANG_WRTE, 6) == 0) {
+		if (strcmp(lookahead.attribute.idLexeme, LANG_WRTE) == 0) {
 			outputStatement();
+		}
+		else if (strncmp(lookahead.attribute.idLexeme, LANG_READ, 6) == 0) {
+			inputStatement();
 		}
 		break;
 	default:
-		printError();
+		lookahead = tokenizer();
 	}
 	printf("%s%s\n", STR_LANGNAME, ": Statement parsed");
 }
 
+void returnStatement() {
+	return_flag = 1;
+	switch (lookahead.code) {
+	case STR_T:
+		matchToken(STR_T, NO_ATTR);
+		break;
+	case INL_T:
+		matchToken(INL_T, NO_ATTR);
+		break;
+	case VID_T:
+		matchToken(VID_T, NO_ATTR);
+		break;
+	case KW_T:
+		if (strcmp(keywordTable[lookahead.attribute.codeType], "true") == 0) {
+			matchToken(KW_T, KW_true);
+			break;
+		}
+		else if (strcmp(keywordTable[lookahead.attribute.codeType], "false") == 0) {
+			matchToken(KW_T, KW_false);
+			break;
+		}
+		else {
+			printError();
+			break;
+		}
+	default:
+		;
+	}
+	printf("%s%s\n", STR_LANGNAME, ": Return statement parsed");
+}
 /*
  ************************************************************
  * Output Statement
@@ -383,11 +597,10 @@ sofia_void statement() {
  * FIRST(<output statement>) = { MNID_T(print&) }
  ***********************************************************
  */
-sofia_void outputStatement() {
+void outputStatement() {
 	psData.parsHistogram[BNF_outputStatement]++;
 	matchToken(MNID_T, NO_ATTR);
-	matchToken(LPR_T, NO_ATTR);
-	outputVariableList();
+	outputVariableValue();
 	matchToken(RPR_T, NO_ATTR);
 	matchToken(EOS_T, NO_ATTR);
 	printf("%s%s\n", STR_LANGNAME, ": Output statement parsed");
@@ -400,16 +613,115 @@ sofia_void outputStatement() {
  * FIRST(<opt_variable_list>) = { IVID_T, FVID_T, SVID_T, ϵ }
  ***********************************************************
  */
-sofia_void outputVariableList() {
-	psData.parsHistogram[BNF_outputVariableList]++;
+void outputVariableValue() {
+	psData.parsHistogram[BNF_outputVariableValue]++;
+	switch (lookahead.code) {
+	case STR_T:
+		matchToken(STR_T, NO_ATTR);
+		break;
+	case INL_T:
+		matchToken(INL_T, NO_ATTR);
+		break;
+	case VID_T:
+		matchToken(VID_T, NO_ATTR);
+		break;
+	case KW_T:
+		if (strcmp(keywordTable[lookahead.attribute.codeType], "true") == 0) {
+			matchToken(KW_T, KW_true);
+			break;
+		}
+		else if (strcmp(keywordTable[lookahead.attribute.codeType], "false") == 0) {
+			matchToken(KW_T, KW_false);
+			break;
+		}
+		else {
+			printError();
+			break;
+		}
+	default:
+		;
+	}
+	printf("%s%s\n", STR_LANGNAME, ": Output variable parsed");
+}
+
+void conditionStatement() {
+	psData.parsHistogram[BNF_outputVariableValue]++;
+
+	switch (lookahead.code) {
+	case STR_T:
+		matchToken(STR_T, NO_ATTR);
+		break;
+	case INL_T:
+		matchToken(INL_T, NO_ATTR);
+		break;
+	case VID_T:
+		matchToken(VID_T, NO_ATTR);
+		break;
+	default:
+		; //epsilon
+	}
+
+	switch (lookahead.code) {
+	case EQ_T:
+		matchToken(EQ_T, NO_ATTR);
+		break;
+	case NE_T:
+		matchToken(NE_T, NO_ATTR);
+		break;
+	case GT_T:
+		matchToken(GT_T, NO_ATTR);
+		break;
+	case LT_T:
+		matchToken(LT_T, NO_ATTR);
+		break;
+	case STRICT_EQ_T:
+		matchToken(STRICT_EQ_T, NO_ATTR);
+		break;
+	case STRICT_NE_T:
+		matchToken(STRICT_NE_T, NO_ATTR);
+		break;
+	default:
+		; //epsilon
+	}
+
+	switch (lookahead.code) {
+	case STR_T:
+		matchToken(STR_T, NO_ATTR);
+		break;
+	case INL_T:
+		matchToken(INL_T, NO_ATTR);
+		break;
+	case VID_T:
+		matchToken(VID_T, NO_ATTR);
+		break;
+	default:
+		; //epsilon
+	}
+
+	printf("%s%s\n", STR_LANGNAME, ": Condition statement parsed");
+}
+
+void iterationStatement() {
+	return;
+}
+
+void inputStatement() {
+	psData.parsHistogram[BNF_outputStatement]++;
+	matchToken(MNID_T, NO_ATTR);
+
+	psData.parsHistogram[BNF_outputVariableValue]++;
 	switch (lookahead.code) {
 	case STR_T:
 		matchToken(STR_T, NO_ATTR);
 		break;
 	default:
-		;
+		printError();
+		break;
 	}
-	printf("%s%s\n", STR_LANGNAME, ": Output variable list parsed");
+
+	matchToken(RPR_T, NO_ATTR);
+	matchToken(EOS_T, NO_ATTR);
+	printf("%s%s\n", STR_LANGNAME, ": Input statement parsed");
 }
 
 /*
@@ -422,10 +734,10 @@ sofia_void outputVariableList() {
  ***********************************************************
  */
 /*
-sofia_void printBNFData(ParserData psData) {
+void printBNFData(ParserData psData) {
 }
 */
-sofia_void printBNFData(ParserData psData) {
+void printBNFData(ParserData psData) {
 	/* Print Parser statistics */
 	printf("Statistics:\n");
 	printf("----------------------------------\n");
