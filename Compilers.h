@@ -81,9 +81,6 @@ typedef int				integer;
 typedef char			boolean;
 typedef unsigned char	byte;
 
-/*typedef <something>	var;*/
-
-
 /*
 ------------------------------------------------------------
 Programs:
@@ -105,15 +102,13 @@ Main functions signatures
 ------------------------------------------------------------
 */
 integer mainReader(integer argc, string* argv);
+
+integer mainScanner(integer argc, string* argv);
+
 /* TO_DO: Remove comment in next assignments */
 /*
-integer mainScanner(integer argc, string* argv);
 integer mainParser(integer argc, string* argv);
 */
-typedef int simpleJS_intg;
-typedef int SimpleJS_intg;
-
-simpleJS_intg mainScanner(SimpleJS_intg argc SimpleJS_string* argv);
 
 void printLogo();
 

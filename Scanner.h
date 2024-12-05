@@ -2,7 +2,7 @@
 ************************************************************
 * COMPILERS COURSE - Algonquin College
 * Code version: Fall, 2024
-* Author: TO_DO
+* Author: Vi Tuan Ha, Corey Lambert
 * Professors: Paulo Sousa
 ************************************************************
 #
@@ -23,7 +23,7 @@
 # ECHO "    @@     @ @@   /@/   @@@ @      @@    ”
 # ECHO "    @@     @@@@@@@@@@@@@@@         @@    ”
 # ECHO "    @@                             @@    ”
-# ECHO "    @@         S O F I A           @@    ”
+# ECHO "    @@            S J S            @@    ”
 # ECHO "    @@                             @@    ”
 # ECHO "    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@    ”
 # ECHO "                                         "
@@ -68,164 +68,285 @@
 
 #define RTE_CODE 1  /* Value for run-time error */
 
-/* TO_DO: Define the number of tokens */
-#define NUM_TOKENS 24
+#define NUM_TOKENS 47
 
-/* TO_DO: Define Token codes - Create your token classes */
 enum TOKENS {
-	ERR_T,		/*  0: Error token */
-	MNID_T,		/*  1: Method name identifier token (start: &) */
-	INL_T,		/*  2: Integer literal token */
-	STR_T,		/*  3: String literal token */
-	LPR_T,		/*  4: Left parenthesis token */
-	RPR_T,		/*  5: Right parenthesis token */
-	LBR_T,		/*  6: Left brace token */
-	RBR_T,		/*  7: Right brace token */
-	KW_T,		/*  8: Keyword token */
-	EOS_T,		/*  9: End of statement (semicolon) */
-	RTE_T,		/* 10: Run-time error token */
-	SEOF_T,		/* 11: Source end-of-file token */
-	CMT_T		/* 12: Comment token */
-	ADD_T,		/* 13: Addition operator token */
-	SUB_T,		/* 14: Subtraction operator token */
-	MUL_T,		/* 15: Multiplication operator token */
-	DIV_T,		/* 16: Division operator token */
-	EQ_T,		/* 17: Equality operator token */
-	NE_T,		/* 18: Not equal operator token */
-	GT_T,		/* 19: Greater than operator token */
-	LT_T,		/* 20: Less than operator token */
-	AND_T,		/* 21: Logical AND operator token */
-	OR_T,		/* 22: Logical OR operator token */
-	NOT_T		/* 23: Logical NOT operator token */
+	/* Basic Tokens */
+	ERR_T,           /*  0: Error token */
+	MNID_T,          /*  1: Method name identifier token */
+	VID_T,           /*  2: Variable identifier token */
+	INL_T,           /*  3: Integer literal token */
+	STR_T,           /*  4: String literal token */
+	LPR_T,           /*  5: Left parenthesis token */
+	RPR_T,           /*  6: Right parenthesis token */
+	LBR_T,           /*  7: Left brace token */
+	RBR_T,           /*  8: Right brace token */
+
+	KW_T,            /*  9: Keyword token */
+
+	EOS_T,           /* 10: End of statement (semicolon) */
+	RTE_T,           /* 11: Run-time error token */
+	SEOF_T,          /* 12: Source end-of-file token */
+	CMT_T,           /* 13: Comment token */
+
+	/* Arithmetic Operators */
+	ASGN_T,          /* 14: Assignment operator token (=) */
+	ADD_T,           /* 15: Addition operator token (+) */
+	SUB_T,           /* 16: Subtraction operator token (-) */
+	MUL_T,           /* 17: Multiplication operator token (*) */
+	DIV_T,           /* 18: Division operator token (/) */
+	MOD_T,           /* 19: Modulo operator token (%) */
+
+	/* Comparison Operators */
+	EQ_T,            /* 20: Equality operator token (==) */
+	NE_T,            /* 21: Not equal operator token (!=) */
+	GT_T,            /* 22: Greater than operator token (>) */
+	LT_T,            /* 23: Less than operator token (<) */
+	STRICT_EQ_T,     /* 24: Strict equality operator token (===) */
+	STRICT_NE_T,     /* 25: Strict not equal operator token (!==) */
+
+	/* Logical Operators */
+	AND_T,           /* 26: Logical AND operator token (&&) */
+	OR_T,            /* 27: Logical OR operator token (||) */
+	NOT_T,           /* 28: Logical NOT operator token (!) */
+
+	/* Compound Assignment Operators */
+	ADD_ASGN_T,      /* 29: Addition assignment operator token (+=) */
+	SUB_ASGN_T,      /* 30: Subtraction assignment operator token (-=) */
+	MUL_ASGN_T,      /* 31: Multiplication assignment operator token (*=) */
+	DIV_ASGN_T,      /* 32: Division assignment operator token (/=) */
+
+	/* Bitwise Operators */
+	BIT_AND_T,       /* 33: Bitwise AND operator token (&) */
+	BIT_OR_T,        /* 34: Bitwise OR operator token (|) */
+	BIT_XOR_T,       /* 35: Bitwise XOR operator token (^) */
+	BIT_NOT_T,       /* 36: Bitwise NOT operator token (~) */
+	LSHIFT_T,        /* 37: Left shift operator token (<<) */
+	RSHIFT_T,        /* 38: Right shift operator token (>>) */
+	URSHIFT_T,       /* 39: Unsigned right shift operator token (>>>) */
+
+	/* Additional Delimiters */
+	COMMA_T,         /* 40: Comma delimiter token (,) */
+	COLON_T,         /* 41: Colon delimiter token (:) */
+	DOT_T,           /* 42: Dot operator token (.) */
+
+	/* Brackets */
+	LBRACKET_T,      /* 43: Left square bracket token ([) */
+	RBRACKET_T,      /* 44: Right square bracket token (]) */
+
+	/* Template Literal Tokens */
+	TEMPLATE_START_T,/* 45: Template literal start token (`) */
+	TEMPLATE_END_T   /* 46: Template literal end token (`) */
 };
 
-/* TO_DO: Define the list of keywords */
-static simpleJS_string tokenStrTable[NUM_TOKENS] = {
-	"ERR_T",
-	"MNID_T",
-	"INL_T",
-	"STR_T",
-	"LPR_T",
-	"RPR_T",
-	"LBR_T",
-	"RBR_T",
-	"KW_T",
-	"EOS_T",
-	"RTE_T",
-	"SEOF_T",
-	"CMT_T",
-	"ADD_T",
-	"SUB_T",
-	"MUL_T",
-	"DIV_T",
-	"EQ_T",
-	"NE_T",
-	"GT_T",
-	"LT_T",
-	"AND_T",
-	"OR_T",
-	"NOT_T"
+static string tokenStrTable[NUM_TOKENS] = {
+	"ERR_T",           /*  0 */
+	"MNID_T",          /*  1 */
+	"VID_T",           /*  2 */
+	"INL_T",           /*  3 */
+	"STR_T",           /*  4 */
+	"LPR_T",           /*  5 */
+	"RPR_T",           /*  6 */
+	"LBR_T",           /*  7 */
+	"RBR_T",           /*  8 */
+	"KW_T",            /*  9 */
+	"EOS_T",           /* 10 */
+	"RTE_T",           /* 11 */
+	"SEOF_T",          /* 12 */
+	"CMT_T",           /* 13 */
+
+	/* Arithmetic Operators */
+	"ASGN_T",          /* 14 */
+	"ADD_T",           /* 15 */
+	"SUB_T",           /* 16 */
+	"MUL_T",           /* 17 */
+	"DIV_T",           /* 18 */
+	"MOD_T",           /* 19 */
+
+	/* Comparison Operators */
+	"EQ_T",            /* 20 */
+	"NE_T",            /* 21 */
+	"GT_T",            /* 22 */
+	"LT_T",            /* 23 */
+	"STRICT_EQ_T",     /* 24 */
+	"STRICT_NE_T",     /* 25 */
+
+	/* Logical Operators */
+	"AND_T",           /* 26 */
+	"OR_T",            /* 27 */
+	"NOT_T",           /* 28 */
+
+	/* Compound Assignment Operators */
+	"ADD_ASGN_T",      /* 29 */
+	"SUB_ASGN_T",      /* 30 */
+	"MUL_ASGN_T",      /* 31 */
+	"DIV_ASGN_T",      /* 32 */
+
+	/* Bitwise Operators */
+	"BIT_AND_T",       /* 33 */
+	"BIT_OR_T",        /* 34 */
+	"BIT_XOR_T",       /* 35 */
+	"BIT_NOT_T",       /* 36 */
+	"LSHIFT_T",        /* 37 */
+	"RSHIFT_T",        /* 38 */
+	"URSHIFT_T",       /* 39 */
+
+	/* Additional Delimiters */
+	"COMMA_T",         /* 40 */
+	"COLON_T",         /* 41 */
+	"DOT_T",           /* 42 */
+
+	/* Brackets */
+	"LBRACKET_T",      /* 43 */
+	"RBRACKET_T",      /* 44 */
+
+	/* Template Literal Tokens */
+	"TEMPLATE_START_T",/* 45 */
+	"TEMPLATE_END_T"   /* 46 */
 };
 
-/* TO_DO: Operators token attributes */
-typedef enum ArithmeticOperators { OP_ADD, OP_SUB, OP_MUL, OP_DIV } AriOperator;
-typedef enum RelationalOperators { OP_EQ, OP_NE, OP_GT, OP_LT } RelOperator;
+
+typedef enum ArithmeticOperators {
+	OP_ASGN,        /* Assignment operator (=) */
+	OP_ADD,         /* Addition operator (+) */
+	OP_SUB,         /* Subtraction operator (-) */
+	OP_MUL,         /* Multiplication operator (*) */
+	OP_DIV,         /* Division operator (/) */
+	OP_MOD,         /* Modulo operator (%) */
+	OP_ADD_ASGN,    /* Addition assignment operator (+=) */
+	OP_SUB_ASGN,    /* Subtraction assignment operator (-=) */
+	OP_MUL_ASGN,    /* Multiplication assignment operator (*=) */
+	OP_DIV_ASGN,    /* Division assignment operator (/=) */
+	OP_MOD_ASGN     /* Modulo assignment operator (%=) */
+} AriOperator;
+
+typedef enum RelationalOperators {
+	OP_EQ,          /* Equality operator (==) */
+	OP_NE,          /* Not equal operator (!=) */
+	OP_GT,          /* Greater than operator (>) */
+	OP_LT,          /* Less than operator (<) */
+	OP_STRICT_EQ,   /* Strict equality operator (===) */
+	OP_STRICT_NE    /* Strict not equal operator (!==) */
+} RelOperator;
+
 typedef enum LogicalOperators { OP_AND, OP_OR, OP_NOT } LogOperator;
 typedef enum SourceEndOfFile { SEOF_0, SEOF_255 } EofOperator;
 
-/* TO_DO: Data structures for declaring the token and its attributes */
 typedef union TokenAttribute {
-	simpleJS_intg codeType;      /* integer attributes accessor */
+	integer codeType;					/* integer attributes accessor */
 	AriOperator arithmeticOperator;		/* arithmetic operator attribute code */
 	RelOperator relationalOperator;		/* relational operator attribute code */
 	LogOperator logicalOperator;		/* logical operator attribute code */
 	EofOperator seofType;				/* source-end-of-file attribute code */
-	simpleJS_intg intValue;				/* integer literal attribute (value) */
-	simpleJS_intg keywordIndex;			/* keyword index in the keyword table */
-	simpleJS_intg contentString;			/* string literal offset from the beginning of the string literal buffer (stringLiteralTable->content) */
-	simpleJS_real floatValue;				/* floating-point literal attribute (value) */
-	simpleJS_char idLexeme[VID_LEN + 1];	/* variable identifier token attribute */
-	simpleJS_char errLexeme[ERR_LEN + 1];	/* error token attribite */
+	integer intValue;					/* integer literal attribute (value) */
+	integer keywordIndex;				/* keyword index in the keyword table */
+	integer contentString;				/* string literal offset from the beginning of the string literal buffer (stringLiteralBuffer->content) */
+	float floatValue;					/* floating-point literal attribute (value) */
+	character idLexeme[VID_LEN + 1];	/* variable identifier token attribute */
+	character errLexeme[ERR_LEN + 1];	/* error token attribite */
 } TokenAttribute;
 
-/* TO_DO: Should be used if no symbol table is implemented */
 typedef struct idAttibutes {
-	simpleJS_byte flags;			/* Flags information */
+	byte flags;						/* Flags information */
 	union {
-		simpleJS_intg intValue;				/* Integer value */
-		simpleJS_real floatValue;			/* Float value */
-		simpleJS_string stringContent;		/* String value */
+		integer intValue;			/* Integer value */
+		float floatValue;			/* Float value */
+		string stringContent;		/* String value */
 	} values;
 } IdAttibutes;
 
 /* Token declaration */
 typedef struct Token {
-	simpleJS_intg code;				/* token code */
+	integer code;				/* token code */
 	TokenAttribute attribute;	/* token attribute */
 	IdAttibutes   idAttribute;	/* not used in this scanner implementation - for further use */
 } Token;
 
 /* Scanner */
 typedef struct scannerData {
-	simpleJS_intg scanHistogram[NUM_TOKENS];	/* Statistics of chars */
+	integer scanHistogram[NUM_TOKENS];	/* Statistics of chars */
 } ScannerData, * pScanData;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 
-/* TO_DO: Define lexeme FIXED classes */
-/* EOF definitions */
-#define EOS_CHR '\0'	// CH00
-#define EOF_CHR 0xFF	// CH01
-#define UND_CHR '_'		// CH02
-#define AMP_CHR '&'		// CH03
-#define QUT_CHR '\''	// CH04
-#define HST_CHR '#'		// CH05
-#define TAB_CHR '\t'	// CH06
-#define SPC_CHR ' '		// CH07
-#define NWL_CHR '\n'	// CH08
-#define SCL_CHR ';'		// CH09
-#define LPR_CHR '('		// CH10
-#define RPR_CHR ')'		// CH11
-#define LBR_CHR '{'		// CH12
-#define RBR_CHR '}'		// CH13
-#define SLH_CHR '/'		// CH14
-#define STR_CHR '*'		// CH15
-#define ADD_CHR '+'		// CH16
-#define MIN_CHR '-'		// CH17
-#define DIV_CHR '/'		// CH18
-#define LTR_CHR 'a-z', 'A-Z'	// CH19
-#define DGT_CHR '0-9'		// CH20
-#define K_CHR '$'		// CH21
-#define DOT_CHR '.'		// CH22
-#define QTE_CHR '"'		// CH23
+// Lexeme Fixed Classes
+#define EOS_CHR '\0'     // CH00: End of string (null terminator)
+#define EOF_CHR 0xFF     // CH01: End of file
+#define UND_CHR '_'      // CH02: Underscore (for identifiers)
+#define AMP_CHR '&'      // CH03: Ampersand (bitwise AND, logical AND or method identifier)
+#define SGL_QT_CHR '\''  // CH04: Single quote (for single-quoted strings)
+#define TAB_CHR '\t'     // CH05: Tab character
+#define SPC_CHR ' '      // CH06: Space character
+#define NWL_CHR '\n'     // CH07: Newline character
+#define SCL_CHR ';'      // CH08: Semicolon (end of statement)
+#define LPR_CHR '('      // CH09: Left parenthesis (function or expression delimiter)
+#define RPR_CHR ')'      // CH10: Right parenthesis (function or expression delimiter)
+#define LBR_CHR '{'      // CH11: Left brace (start of scope)
+#define RBR_CHR '}'      // CH12: Right brace (end of scope)
+#define SLH_CHR '/'      // CH13: Slash (for division and comments)
+#define MUL_CHR '*'      // CH14: Asterisk (for multiplication and block comments)
+#define ADD_CHR '+'      // CH15: Plus (addition)
+#define MIN_CHR '-'      // CH16: Minus (subtraction)
+#define LT_CHR '<'       // CH17: Less than (comparison)
+#define GT_CHR '>'       // CH18: Greater than (comparison)
+#define EQ_CHR '='       // CH19: Equals (assignment and comparison)
+#define EXL_CHR '!'      // CH20: Exclamation (logical NOT and inequality)
+#define LBRK_CHR '['     // CH21: Left bracket (list delimiter)
+#define RBRK_CHR ']'     // CH22: Right bracket (list delimiter)
+#define COL_CHR ':'      // CH23: Colon (object property delimiter)
+#define COM_CHR ','      // CH24: Comma (separator)
+#define DOT_CHR '.'      // CH25: Dot (member access)
+#define DBL_QT_CHR '"'   // CH26: Double quote (for double-quoted strings)
+#define BCKT_CHR '`'     // CH27: Backtick (for template literals)
+#define QST_CHR '?'      // CH28: Question mark (ternary operator)
+#define BSLASH_CHR '\\'  // CH29: Backslash (escape character)
+#define PIPE_CHR '|'     // CH30: Pipe (bitwise OR and logical OR)
+#define CARET_CHR '^'    // CH31: Caret (bitwise XOR)
+#define TILDE_CHR '~'    // CH32: Tilde (bitwise NOT)
+#define PERC_CHR '%'     // CH33: Percent (modulo)
+#define MNY_CHR '$'      // CH34: Dollar sign (keyword identiifer)
 
-/*  Special case tokens processed separately one by one in the token-driven part of the scanner:
- *  LPR_T, RPR_T, LBR_T, RBR_T, EOS_T, SEOF_T and special chars used for tokenis include _, & and ' */
+/* Special case tokens processed individually in the token-driven part of the scanner:
+ * LPR_T, RPR_T, LBR_T, RBR_T, LBRACKET_T, RBRACKET_T, COMMA_T, COLON_T, EOS_T, SEOF_T,
+ * template literal markers (TEMPLATE_START_T, TEMPLATE_END_T),
+ * assignment and comparison operators (ASGN_T, EQ_T, STRICT_EQ_T),
+ * arithmetic and compound assignment operators (+, +=, -, -=, *, *=, %, /),
+ * logical and bitwise operators (&, |, ^, ~, &&, ||),
+ * and other special characters such as ` (backtick), & (ampersand), and ' (single quote).
+ */
 
+#define ESNR	21		/* Error state with no retract */
+#define ESWR	22		/* Error state with retract */
+#define FS		23		/* Illegal state */
 
-/* TO_DO: Error states and illegal state */
-#define ESNR	8		/* Error state with no retract */
-#define ESWR	9		/* Error state with retract */
-#define FS		10		/* Illegal state */
+#define NUM_STATES		21 + 2
+#define CHAR_CLASSES	11
 
- /* TO_DO: State transition table definition */
-#define NUM_STATES		10
-#define CHAR_CLASSES	8
-
-/* TO_DO: Transition table - type of states defined in separate table */
-static simpleJS_intg transitionTable[NUM_STATES][CHAR_CLASSES] = {
-/*    [A-z],[0-9],    _,    &,   \', SEOF,    #, other
-	   L(0), D(1), U(2), M(3), Q(4), E(5), C(6),  O(7) */
-	{     1, ESNR, ESNR, ESNR,    4, ESWR,	  6, ESNR},	// S0: NOAS
-	{     1,    1,    1,    2,	  3,    3,   3,    3},	// S1: NOAS
-	{    FS,   FS,   FS,   FS,   FS,   FS,	 FS,   FS},	// S2: ASNR (MVID)
-	{    FS,   FS,   FS,   FS,   FS,   FS,	 FS,   FS},	// S3: ASWR (KEY)
-	{     4,    4,    4,    4,    5, ESWR,	  4,    4},	// S4: NOAS
-	{    FS,   FS,   FS,   FS,   FS,   FS,	 FS,   FS},	// S5: ASNR (SL)
-	{     6,    6,    6,    6,    6, ESWR,	  7,    6},	// S6: NOAS
-	{    FS,   FS,   FS,   FS,   FS,   FS,	 FS,   FS},	// S7: ASNR (COM)
-	{    FS,   FS,   FS,   FS,   FS,   FS,	 FS,   FS},	// S8: ASNR (ES)
-	{    FS,   FS,   FS,   FS,   FS,   FS,	 FS,   FS}  // S9: ASWR (ER)
+static integer transitionTable[NUM_STATES][CHAR_CLASSES] = {
+	/*         SL      \n     S       U       L       EQ      P       D       Q       SQ      O    */
+	/*  0 */ {  1,   ESNR,  ESNR,   8,      8,      ESNR,   ESNR,   12,     14,     18,    ESNR },
+	/*  1 */ {  2,   ESNR,  4,      ESNR,   ESNR,   16,     ESNR,   20,   ESNR,   ESNR,  ESNR },
+	/*  2 */ {  2,   3,     2,      2,      2,      2,      2,      2,      2,      2,     2    },
+	/*  3 */ {  FS, FS, FS,   FS,   FS,   FS,   FS,   FS,   FS,   FS,  FS },
+	/*  4 */ {  4,    4,     5,      4,      4,      4,      4,      4,      4,      4,     4    },
+	/*  5 */ {  6,    5,     5,      5,      5,      5,      5,      5,      5,      5,     5    },
+	/*  6 */ {  ESNR, 7,     ESNR,   ESNR,   ESNR,   ESNR,   ESNR,   ESNR,   ESNR,   ESNR,  ESNR },
+	/*  7 */ {  FS, FS,  FS,   FS,   FS,   FS,   FS,   FS,   FS,   FS,  FS },
+	/*  8 */ {  11,   11,    11,     8,      8,      9,      10,     8,      11,     11,    11   },
+	/*  9 */ {  FS, FS,  FS,   FS,   FS,   FS,   FS,   FS,   FS,   FS,  FS },
+	/* 10 */ {  FS, FS,  FS,   FS,   FS,   FS,   FS,   FS,   FS,   FS,  FS },
+	/* 11 */ {  FS, FS,  FS,   FS,   FS,   FS,   FS,   FS,   FS,   FS,  FS },
+	/* 12 */ {  13,   13,    13,     13,     13,     13,     13,     12,     13,     13,    13   },
+	/* 13 */ {  FS, FS,  FS,   FS,   FS,   FS,   FS,   FS,   FS,   FS,  FS },
+	/* 14 */ {  14,   14,    14,     14,     14,     14,     14,     14,     15,     14,    14   },
+	/* 15 */ {  FS, FS,  FS,   FS,   FS,   FS,   FS,   FS,   FS,   FS,  FS },
+	/* 16 */ {  ESNR, ESNR,  ESNR,   ESNR,   ESNR,   ESNR,   ESNR,   17,     ESNR,   ESNR,  ESNR },
+	/* 17 */ {  FS, FS,  FS,   FS,   FS,   FS,   FS,   FS,   FS,   FS,  FS },
+	/* 18 */ {  18,   18,    18,     18,     18,     18,     18,     18,     18,     19,    18   },
+	/* 19 */ {  FS, FS,  FS,   FS,   FS,   FS,   FS,   FS,   FS,   FS,  FS },
+	/* 20 */ {  FS, FS,  FS,   FS,   FS,   FS,   FS,   FS,   FS,   FS,  FS },
+	/* 21 */ {  FS, FS,  FS,   FS,   FS,   FS,   FS,   FS,   FS,   FS,  FS },  // ERROR STATE NO RETRACT (ESNR)
+	/* 22 */ {  FS, FS,  FS,   FS,   FS,   FS,   FS,   FS,   FS,   FS,  FS }   // ERROR STATE WITH RETRACT (ESWR)
 };
 
 /* Define accepting states types */
@@ -233,32 +354,39 @@ static simpleJS_intg transitionTable[NUM_STATES][CHAR_CLASSES] = {
 #define FSNR	1		/* accepting state with no retract */
 #define FSWR	2		/* accepting state with retract */
 
-/* TO_DO: Define list of acceptable states */
-static simpleJS_intg stateType[NUM_STATES] = {
+/* List of acceptable states */
+static integer stateType[NUM_STATES] = {
 	NOFS, /* 00 */
 	NOFS, /* 01 */
-	FSNR, /* 02 (MID) - Methods */
-	FSWR, /* 03 (KEY) */
+	NOFS, /* 02 */
+	FSNR, /* 03 SLC */
 	NOFS, /* 04 */
-	FSNR, /* 05 (SL) */
+	NOFS, /* 05 */
 	NOFS, /* 06 */
-	FSNR, /* 07 (COM) */
-	FSNR, /* 08 (Err1 - no retract) */
-	FSWR  /* 09 (Err2 - retract) */
+	FSNR, /* 07 MLC */
+	NOFS, /* 08 */
+	FSWR, /* 09 Variables */
+	FSWR, /* 10 Methods */
+	FSWR, /* 11 Keywords */
+	NOFS, /* 12 */
+	FSWR, /* 13 Integer literal */
+	NOFS, /* 14 */
+	FSNR, /* 15 String literal */
+	NOFS, /* 16 */
+	FSWR, /* 17 /= OPERATOR */
+	NOFS, /* 18 */
+	FSNR, /* 19 Sting literal*/
+	FSWR, /* 20 DIV OPERATOR */
+	FSNR, /* 21 (Err1 - no retract) */
+	FSWR  /* 22 (Err2 - retract) */
 };
 
-/*
--------------------------------------------------
-TO_DO: Adjust your functions'definitions
--------------------------------------------------
-*/
-
 /* Static (local) function  prototypes */
-simpleJS_intg			startScanner(BufferPointer psc_buf);
-static simpleJS_intg	nextClass(simpleJS_char c);					/* character class function */
-static simpleJS_intg	nextState(simpleJS_intg, simpleJS_char);		/* state machine function */
-simpleJS_void			printScannerData(ScannerData scData);
-Token					tokenizer(simpleJS_void);
+integer			startScanner(BufferPointer psc_buf);
+static integer	nextClass(character c);					/* character class function */
+static integer	nextState(integer, character);		/* state machine function */
+void			printScannerData(ScannerData scData);
+Token			tokenizer(simpleJS_void);
 
 /*
 -------------------------------------------------
@@ -266,34 +394,46 @@ Automata definitions
 -------------------------------------------------
 */
 
-/* TO_DO: Pointer to function (of one char * argument) returning Token */
-typedef Token(*PTR_ACCFUN)(simpleJS_string lexeme);
+typedef Token(*PTR_ACCFUN)(string lexeme);
 
 /* Declare accepting states functions */
-Token funcSL	(simpleJS_string lexeme);
-Token funcIL	(simpleJS_string lexeme);
-Token funcID	(simpleJS_string lexeme);
-Token funcCMT   (simpleJS_string lexeme);
-Token funcKEY	(simpleJS_string lexeme);
-Token funcErr	(simpleJS_string lexeme);
+Token funcSL	(string lexeme);
+Token funcIL	(string lexeme);
+Token funcID	(string lexeme);
+Token funcCMT   (string lexeme);
+Token funcKEY	(string lexeme);
+Token funcErr	(string lexeme);
+Token funcDIVOP	(string lexeme);
 
 /* 
  * Accepting function (action) callback table (array) definition 
  * If you do not want to use the typedef, the equvalent declaration is:
  */
 
-/* TO_DO: Define final state table */
 static PTR_ACCFUN finalStateTable[NUM_STATES] = {
 	NULL,		/* -    [00] */
 	NULL,		/* -    [01] */
-	funcID,		/* MNID	[02] */
-	funcKEY,	/* KEY  [03] */
+	NULL,		/* -    [02] */
+	funcCMT,	/* -    [03] */
 	NULL,		/* -    [04] */
-	funcSL,		/* SL   [05] */
+	NULL,		/* -    [05] */
 	NULL,		/* -    [06] */
-	funcCMT,	/* COM  [07] */
-	funcErr,	/* ERR1 [06] */
-	funcErr		/* ERR2 [07] */
+	funcCMT,	/* -    [07] */
+	NULL,		/* -    [08] */
+	funcID,		/* -    [09] */
+	funcID,		/* -    [10] */
+	funcKEY,	/* -    [11] */
+	NULL,		/* -    [12] */
+	funcIL,		/* -    [13] */
+	NULL,		/* -    [14] */
+	funcSL,		/* -    [15] */
+	NULL,		/* -    [16] */
+	funcDIVOP,	/* -    [17] */
+	NULL,		/* -    [18] */
+	funcSL,		/* -    [19] */
+	funcDIVOP,	/* -    [20] */
+	funcErr,	/* -    [21] */
+	funcErr		/* -    [22] */
 };
 
 /*
@@ -302,22 +442,23 @@ Language keywords
 -------------------------------------------------
 */
 
-/* TO_DO: Define the number of Keywords from the language */
-#define KWT_SIZE 11
+#define KWT_SIZE 14
 
-/* TO_DO: Define the list of keywords */
-static simpleJS_string keywordTable[KWT_SIZE] = {
-	"data",		/* KW00 */
-	"code",		/* KW01 */
-	"int",		/* KW02 */
-	"real",		/* KW03 */
-	"string",	/* KW04 */
-	"if",		/* KW05 */
-	"then",		/* KW06 */
-	"else",		/* KW07 */
-	"while",	/* KW08 */
-	"do",		/* KW09 */
-	"return"	/* KW10 */
+static string keywordTable[KWT_SIZE] = {
+	"var",		/* KW00 */
+	"if",		/* KW01 */
+	"else",		/* KW02 */
+	"switch",	/* KW03 */
+	"case",		/* KW04 */
+	"do",		/* KW05 */
+	"while",	/* KW06 */
+	"for",		/* KW07 */
+	"break",	/* KW08 */
+	"continue",	/* KW09 */
+	"function",	/* KW10 */
+	"return",	/* KW11 */
+	"true",		/* KW12 */
+	"false"		/* KW13 */
 };
 
 /* NEW SECTION: About indentation */
@@ -330,13 +471,13 @@ static simpleJS_string keywordTable[KWT_SIZE] = {
 
 /* TO_DO: Should be used if no symbol table is implemented */
 typedef struct languageAttributes {
-	simpleJS_char indentationCharType;
-	simpleJS_intg indentationCurrentPos;
+	character indentationCharType;
+	integer indentationCurrentPos;
 	/* TO_DO: Include any extra attribute to be used in your scanner (OPTIONAL and FREE) */
 } LanguageAttributes;
 
 /* Number of errors */
-simpleJS_intg numScannerErrors;
+integer numScannerErrors;
 
 /* Scanner data */
 ScannerData scData;

@@ -451,14 +451,10 @@ boolean readerRetract(BufferPointer const readerPointer) {
 		return FALSE;
 	}
 
+	// Decrement the read position only once
 	readerPointer->positions.read--;
 
-	if (readerPointer->positions.read > 0) {
-		readerPointer->positions.read--;
-		return TRUE;
-	}
-
-	return FALSE;
+	return TRUE;
 }
 
 
@@ -701,7 +697,8 @@ void readerPrintStat(BufferPointer const readerPointer) {
 
 	integer i;
 	for (i = 0; i < NCHAR; i++) {
-		printf("Character %c: %d\n", (char)i, readerPointer->histogram[i]);
+		if (readerPointer->histogram[i] != 0)
+			printf("Character %c: %d\n", (char)i, readerPointer->histogram[i]);
 	}
 }
 

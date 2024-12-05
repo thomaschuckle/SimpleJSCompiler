@@ -95,17 +95,17 @@ integer main(int argc, char** argv) {
 		printf("%s%c%s", "\n[Option '", PGM_READER, "': Starting READER .....]\n\n");
 		mainReader(argc, argv);
 		break;
-	/* TO_DO: Include later SCANNER (A22) and PARSER (A32) */
-	/*
+
 	case PGM_SCANNER:
 		printf("%s%c%s", "\n[Option '", PGM_SCANNER, "': Starting SCANNER .....]\n\n");
 		mainScanner(argc, argv);
 		break;
+
 	case PGM_PARSER:
 		printf("%s%c%s", "\n[Option '", PGM_PARSER, "': Starting PARSER .....]\n\n");
 		mainParser(argc, argv);
 		break;
-	*/
+
 	default:
 		printf("%s%c%s%c%s%c%s", "* OPTIONS:\n- [",
 			PGM_READER, "] - Reader\n- [",
@@ -128,8 +128,6 @@ integer main(int argc, char** argv) {
 * Algorithm: -
 *************************************************************
 */
-
-/* TO_DO: Update your logo with your own language message */
 
 void printLogo() {
 	printf("%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s",
