@@ -162,18 +162,18 @@ integer mainParser(integer argc, string* argv) {
 	/* load source file into input buffer  */
 	printf("Reading file %s ....Please wait\n", argv[2]);
 	loadsize = readerLoad(sourceBuffer, fi);
-	if (loadsize == UNDEFINED)
+	if (loadsize == ERROR) {
 		printParserError("%s%s%s", argv[0], ": ", "Error in loading buffer.");
-
+	}
 	/* close source file */
 	fclose(fi);
 	/*find the size of the file  */
-	if (loadsize == UNDEFINED) {
+	if (loadsize == ERROR) {
 		printf("The input file %s %s\n", argv[2], "is not completely loaded.");
 		printf("Input file size: %ld\n", getParserFileSize(argv[2]));
 	}
 	/* Add SEOF (EOF) to input buffer and display the source buffer */
-	if ((loadsize != UNDEFINED) && (loadsize != 0)) {
+	if ((loadsize != ERROR) && (loadsize != 0)) {
 		if (readerAddChar(sourceBuffer, READER_TERMINATOR)) {
 			displayParser(sourceBuffer);
 		}

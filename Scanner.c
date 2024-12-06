@@ -506,7 +506,6 @@ integer nextClass(character c) {
 			val = 10;  // Other characters (operators, punctuation, etc.)
 		break;
 	}
-
 	return val;
 }
 
